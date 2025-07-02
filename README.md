@@ -32,3 +32,6 @@ $ npm run build:mac
 # For Linux
 $ npm run build:linux
 ```
+
+### Private info
+https://gbuszmicz.medium.com/how-to-add-shadcn-ui-to-an-electron-vite-app-in-5-easy-steps-cadfdf267823

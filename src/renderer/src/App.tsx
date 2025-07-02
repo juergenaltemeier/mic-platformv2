@@ -17,7 +17,7 @@ function App(): React.JSX.Element {
         Please try pressing <code>F12</code> to open the devTool
       </p>
       <div>
-        <Button variant="default" size="lg">
+        <Button variant="default" size="lg" className="bg-primary text-primary-foreground">
         ShadCN Button
       </Button>
       </div>
