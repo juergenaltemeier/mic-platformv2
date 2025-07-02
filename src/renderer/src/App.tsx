@@ -1,5 +1,6 @@
 import Versions from './components/Versions'
 import electronLogo from './assets/electron.svg'
+import { Button } from './components/ui/button'
 
 function App(): React.JSX.Element {
   const ipcHandle = (): void => window.electron.ipcRenderer.send('ping')
@@ -15,6 +16,11 @@ function App(): React.JSX.Element {
       <p className="tip">
         Please try pressing <code>F12</code> to open the devTool
       </p>
+      <div>
+        <Button variant="default" size="lg">
+        ShadCN Button
+      </Button>
+      </div>
       <div className="actions">
         <div className="action">
           <a href="https://electron-vite.org/" target="_blank" rel="noreferrer">
