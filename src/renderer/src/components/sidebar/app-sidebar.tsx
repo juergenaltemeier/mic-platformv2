@@ -12,10 +12,10 @@ import {
   SquareTerminal,
 } from "lucide-react"
 
-import { NavMain } from "@/components/nav-main"
-import { NavProjects } from "@/components/nav-projects"
-import { NavSecondary } from "@/components/nav-secondary"
-import { NavUser } from "@/components/nav-user"
+import { NavMain } from "@renderer/components/sidebar/nav-main"
+import { NavProjects } from "@renderer/components/sidebar/nav-projects"
+import { NavSecondary } from "@renderer/components/sidebar/nav-secondary"
+import { NavUser } from "@renderer/components/sidebar/nav-user"
 import {
   Sidebar,
   SidebarContent,
@@ -25,12 +25,12 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { ModeToggle } from "@/components/mode-toggle"
+import { ModeToggle } from "@renderer/components/sidebar/mode-toggle"
 
 const data = {
   user: {
-    name: "shadcn",
-    email: "m@example.com",
+    name: "Jürgen",
+    email: "ja@micavac.com",
     avatar: "/avatars/shadcn.jpg",
   },
   navMain: [
@@ -41,40 +41,40 @@ const data = {
       isActive: true,
       items: [
         {
-          title: "Renamer",
-          url: "/Renamer",
-        },
-        {
-          title: "Starred",
+          title: "Test1",
           url: "#",
         },
         {
-          title: "Settings",
+          title: "Test2",
+          url: "#",
+        },
+        {
+          title: "Test3",
           url: "#",
         },
       ],
     },
     {
-      title: "Models",
+      title: "Programs",
       url: "#",
       icon: Bot,
       items: [
         {
-          title: "Genesis",
+          title: "Renamer",
+          url: "/programs/renamer",
+        },
+        {
+          title: "Warehouse",
           url: "#",
         },
         {
-          title: "Explorer",
-          url: "#",
-        },
-        {
-          title: "Quantum",
+          title: "Test",
           url: "#",
         },
       ],
     },
     {
-      title: "Documentation",
+      title: "MIC Knowledgebase",
       url: "#",
       icon: BookOpen,
       items: [
@@ -151,7 +151,7 @@ const data = {
   ],
 }
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>): React.ReactElement {
   return (
     <Sidebar variant="inset" {...props}>
       <SidebarHeader>
@@ -177,8 +177,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
         <ModeToggle/>
+        <NavUser user={data.user} />
       </SidebarFooter>
     </Sidebar>
   )

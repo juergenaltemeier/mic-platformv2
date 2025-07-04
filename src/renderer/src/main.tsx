@@ -3,24 +3,24 @@ import './assets/main.css'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { createHashRouter, RouterProvider } from 'react-router-dom'
-import { Page } from '@/App'
-import { Home } from '@/pages/Home'
-import { Renamer } from './pages/Renamer'
+import { App } from '@/App'
+import { Dashboard } from '@/pages/Dashboard'
+import { Renamer } from '@renderer/pages/programs/renamer/Renamer'
 
 const router = createHashRouter([
   {
     path: '/',
-    element: <Page />,
+    element: <App />,
     children: [
       {
         index: true,
-        element: <Home />,
+        element: <Dashboard />,
       },
     ],
   },
   {
-    path: '/Renamer',
-    element: <Page />,
+    path: '/programs/renamer',
+    element: <App />,
     children: [
       {
         index: true,

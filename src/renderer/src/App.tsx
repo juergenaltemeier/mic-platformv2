@@ -1,4 +1,4 @@
-import { AppSidebar } from "@/components/app-sidebar"
+import { AppSidebar } from "@renderer/components/sidebar/app-sidebar"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -16,15 +16,15 @@ import {
 import { Outlet } from "react-router-dom"
 import { ThemeProvider } from "@/components/theme-provider"
 
-export function Page() {
+export function App(): React.ReactElement {
   return (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2">
+        <header className="flex h-10 shrink-0 items-center gap-2">
           <div className="flex items-center gap-2 px-4">
-            <SidebarTrigger className="-ml-1" />
+            <SidebarTrigger className="-ml-0.25" />
             <Separator
               orientation="vertical"
               className="mr-2 data-[orientation=vertical]:h-4"

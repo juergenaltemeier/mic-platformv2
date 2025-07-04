@@ -1,4 +1,4 @@
-export function Home(): React.ReactElement {
+export function Dashboard(): React.ReactElement {
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold">Welcome Home</h1>
