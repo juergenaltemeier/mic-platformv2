@@ -63,6 +63,7 @@ export function DataTable<TData, TValue>({
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
+    columnResizeMode: 'onChange',
     state: {
       sorting,
       columnFilters,
@@ -72,7 +73,7 @@ export function DataTable<TData, TValue>({
   })
 
   return (
-    <div>
+    <div style={{ width: table.getCenterTotalSize() }}>
         <div className="flex items-center py-4">
         <Input
           placeholder="Filter files..."
@@ -118,13 +119,20 @@ export function DataTable<TData, TValue>({
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id}>
+                    <TableHead key={header.id} style={{ width: header.getSize() }}>
                       {header.isPlaceholder
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
                             header.getContext()
                           )}
+                        <div
+                            onMouseDown={header.getResizeHandler()}
+                            onTouchStart={header.getResizeHandler()}
+                            className={`resizer ${
+                                header.column.getIsResizing() ? 'isResizing' : ''
+                            }`}
+                        />
                     </TableHead>
                   )
                 })}

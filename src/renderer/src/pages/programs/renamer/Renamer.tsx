@@ -9,6 +9,7 @@ import { FilesTable } from "./components/FilesTable"
 import { PreviewPanel } from "./components/PreviewPanel"
 import { TagsPanel } from "./components/TagsPanel"
 import { RenamePreviewSheet } from "./components/RenamePreviewSheet"
+import { useRef } from "react"
 
 import { TooltipProvider } from "@/components/ui/tooltip"
 
@@ -21,8 +22,6 @@ export const Renamer = () => {
     setPrefixNumber,
     handleImport,
     handleImportFlat,
-    tagOptions,
-    toggleTag,
     getPreviewNames,
     previewOpen,
     setPreviewOpen,
@@ -38,11 +37,23 @@ export const Renamer = () => {
     handleUndo,
     selectNext,
     selectPrev,
+    handleDateChange,
+    handleSuffixChange,
+    toggleTag,
+    tagOptions,
   } = useRenamer()
+
+  const tableContainerRef = useRef<HTMLDivElement>(null);
+
+  const handleContainerClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (tableContainerRef.current && !tableContainerRef.current.contains(e.target as Node)) {
+      setSelected([]);
+    }
+  };
 
   return (
     <TooltipProvider>
-      <div className="flex flex-col h-full">
+      <div className="flex flex-col h-full" onClick={handleContainerClick}>
         <Toolbar
           prefixNumber={prefixNumber}
           setPrefixNumber={setPrefixNumber}
@@ -61,12 +72,15 @@ export const Renamer = () => {
           onRestoreSession={handleRestoreSession}
         />
         <div className="flex-1 overflow-hidden">
-          <ResizablePanelGroup direction="horizontal">
+          <ResizablePanelGroup direction="horizontal" ref={tableContainerRef}>
             <ResizablePanel>
               <FilesTable
                 files={files}
                 setSelected={setSelected}
                 getPreviewNames={getPreviewNames}
+                onDateChange={handleDateChange}
+                onSuffixChange={handleSuffixChange}
+                selectedRows={selected}
               />
             </ResizablePanel>
             <ResizableHandle withHandle />
@@ -74,7 +88,7 @@ export const Renamer = () => {
               <ResizablePanelGroup direction="vertical">
                 <ResizablePanel defaultSize={50}>
                   <PreviewPanel
-                    selected={selected}
+                    selected={selected.length === 1 ? selected[0] : null}
                     onNext={selectNext ?? (() => {})}
                     onPrev={selectPrev ?? (() => {})}
                   />
@@ -83,8 +97,8 @@ export const Renamer = () => {
                 <ResizablePanel defaultSize={50}>
                   <TagsPanel
                     selected={selected}
-                    tagOptions={tagOptions}
                     onToggleTag={toggleTag}
+                    tagOptions={tagOptions}
                   />
                 </ResizablePanel>
               </ResizablePanelGroup>

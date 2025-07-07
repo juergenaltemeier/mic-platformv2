@@ -5,8 +5,15 @@ import { FileEntry } from "../types"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "@/components/ui/button"
 import { ArrowUpDown } from "lucide-react"
+import { DatePickerWithInput } from "./DatePickerWithInput"
+import { EditableCell } from "./EditableCell"
 
-export const columns: ColumnDef<FileEntry>[] = [
+interface GetColumnsProps {
+    onDateChange: (entry: FileEntry, date: Date) => void;
+    onSuffixChange: (entry: FileEntry, newSuffix: string) => void;
+}
+
+export const getColumns = ({ onDateChange, onSuffixChange }: GetColumnsProps): ColumnDef<FileEntry>[] => [
     {
         id: "select",
         header: ({ table }) => (
@@ -58,13 +65,15 @@ export const columns: ColumnDef<FileEntry>[] = [
   {
     accessorKey: "suffix",
     header: "Suffix",
+    cell: ({ row }) => (
+        <EditableCell row={row} onSuffixChange={onSuffixChange} />
+    )
   },
   {
     accessorKey: "date",
     header: "Date",
-    cell: ({ row }) => {
-        const timestamp: number = row.getValue("date")
-        return new Date(timestamp).toLocaleDateString()
-    }
+    cell: ({ row }) => (
+        <DatePickerWithInput row={row} onDateChange={onDateChange} />
+    )
   },
 ]

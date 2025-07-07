@@ -9,7 +9,7 @@ import { fileToDataUrl } from '@/lib/utils'
  */
 export function useRenamer() {
   const [files, setFiles] = useState<FileEntry[]>([])
-  const [selected, setSelected] = useState<FileEntry | null>(null)
+  const [selected, setSelected] = useState<FileEntry[]>([])
   const [prefixNumber, setPrefixNumber] = useState<string>('')
   const [previewWidth, setPreviewWidth] = useState<number>(() =>
     typeof window !== 'undefined' ? window.innerWidth * 0.4 : 400
@@ -87,7 +87,7 @@ export function useRenamer() {
     )
 
     setFiles(entries)
-    if (entries.length > 0) setSelected(entries[0])
+    if (entries.length > 0) setSelected([entries[0]])
   }
 
   // Import all files recursively
@@ -110,37 +110,44 @@ export function useRenamer() {
            (labels as Record<string, string>)['en'] || id,
   }))
 
-  // Toggle tag on selected file
+  // Toggle tag on selected files
   const toggleTag = (tag: string) => {
-    if (!selected) return
-    const newTags = selected.tags.includes(tag)
-      ? selected.tags.filter((t) => t !== tag)
-      : [...selected.tags, tag]
-    const newFiles = files.map((f) => (f === selected ? { ...f, tags: newTags } : f))
-    setFiles(newFiles)
-    setSelected({ ...selected, tags: newTags })
-  }
+    if (selected.length === 0) return;
 
-  // Update suffix on a file entry
-  const handleSuffixChange = (
-    entry: FileEntry,
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const newSuffix = e.target.value
-    const newFiles = files.map((f) => (f === entry ? { ...f, suffix: newSuffix } : f))
-    setFiles(newFiles)
-    if (selected === entry) setSelected({ ...entry, suffix: newSuffix })
-  }
-  // Update date on a file entry from YYYY-MM-DD string
+    const isSelectedInAll = selected.every(file => file.tags.includes(tag));
+
+    const newFiles = files.map(file => {
+      if (selected.some(sel => sel === file)) {
+        const newTags = isSelectedInAll
+          ? file.tags.filter(t => t !== tag)
+          : [...new Set([...file.tags, tag])];
+        return { ...file, tags: newTags };
+      }
+      return file;
+    });
+
+    setFiles(newFiles);
+    setSelected(newFiles.filter(f => selected.some(sel => sel.oldName === f.oldName)));
+  };
+
   const handleDateChange = (
     entry: FileEntry,
-    dateString: string
+    date: Date
   ) => {
-    const ts = new Date(dateString).getTime()
-    const newFiles = files.map((f) => (f === entry ? { ...f, date: ts } : f))
+    const newFiles = files.map((f) => (f === entry ? { ...f, date: date.getTime() } : f))
     setFiles(newFiles)
-    if (selected === entry) setSelected({ ...entry, date: ts })
+    setSelected(newFiles.filter(f => selected.some(sel => sel.oldName === f.oldName)));
   }
+
+  const handleSuffixChange = (
+    entry: FileEntry,
+    newSuffix: string
+  ) => {
+    const newFiles = files.map((f) => (f === entry ? { ...f, suffix: newSuffix } : f));
+    setFiles(newFiles);
+    setSelected(newFiles.filter(f => selected.some(sel => sel.oldName === f.oldName)));
+  };
+  
   // Update tags on a file entry from comma/space separated string
   const handleTagsInputChange = (
     entry: FileEntry,
@@ -150,7 +157,7 @@ export function useRenamer() {
     const tagsArr = tagsString.split(/[;,]+/).map(t => t.trim()).filter(Boolean)
     const newFiles = files.map((f) => (f === entry ? { ...f, tags: tagsArr } : f))
     setFiles(newFiles)
-    if (selected === entry) setSelected({ ...entry, tags: tagsArr })
+    setSelected(newFiles.filter(f => selected.some(sel => sel.oldName === f.oldName)));
   }
   // Compress selected items (stub)
   const handleCompress = () => {
@@ -166,23 +173,28 @@ export function useRenamer() {
   }
   // Remove selected files
   const handleRemoveSelected = () => {
-    if (selected) {
-      setFiles((prev) => prev.filter((f) => f !== selected))
-      setSelected(null)
+    if (selected.length > 0) {
+      setFiles((prev) => prev.filter((f) => !selected.some(sel => sel === f)))
+      setSelected([])
     }
   }
   // Clear suffix for selected files
   const handleClearSuffix = () => {
-    if (selected) {
-      const newFiles = files.map((f) => (f === selected ? { ...f, suffix: '' } : f))
-      setFiles(newFiles)
-      setSelected({ ...selected, suffix: '' })
+    if (selected.length > 0) {
+      const newFiles = files.map(f => {
+        if (selected.some(sel => sel === f)) {
+          return { ...f, suffix: '' };
+        }
+        return f;
+      });
+      setFiles(newFiles);
+      setSelected(newFiles.filter(f => selected.some(sel => sel.oldName === f.oldName)));
     }
   }
   // Clear all files
   const handleClearAll = () => {
     setFiles([])
-    setSelected(null)
+    setSelected([])
   }
   // Restore session (stub)
   const handleRestoreSession = () => {
@@ -241,18 +253,18 @@ export function useRenamer() {
   }
 
     const selectNext = () => {
-    if (!selected) return
-    const currentIndex = files.findIndex((f) => f === selected)
+    if (selected.length !== 1) return
+    const currentIndex = files.findIndex((f) => f === selected[0])
     if (currentIndex < files.length - 1) {
-      setSelected(files[currentIndex + 1])
+      setSelected([files[currentIndex + 1]])
     }
   }
 
   const selectPrev = () => {
-    if (!selected) return
-    const currentIndex = files.findIndex((f) => f === selected)
+    if (selected.length !== 1) return
+    const currentIndex = files.findIndex((f) => f === selected[0])
     if (currentIndex > 0) {
-      setSelected(files[currentIndex - 1])
+      setSelected([files[currentIndex - 1]])
     }
   }
 

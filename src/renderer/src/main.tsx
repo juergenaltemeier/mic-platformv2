@@ -7,6 +7,8 @@ import { App } from '@/App'
 import { Dashboard } from '@/pages/Dashboard'
 import { Renamer } from '@renderer/pages/programs/renamer/Renamer'
 
+import { SettingsPage } from '@/pages/Settings'
+
 const router = createHashRouter([
   {
     path: '/',
@@ -16,6 +18,10 @@ const router = createHashRouter([
         index: true,
         element: <Dashboard />,
       },
+      {
+        path: 'settings',
+        element: <SettingsPage />,
+      }
     ],
   },
   {
