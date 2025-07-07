@@ -17,6 +17,7 @@
  - electron-builder for packaging and distribution
  - electron-updater for auto-updates
  - Additional libraries: @radix-ui/react-slot, class-variance-authority, clsx, lucide-react, tailwind-merge
+  - shadcn/ui: a collection of pre-built, accessible React blocks and components (https://ui.shadcn.com/)
 
  ## Folder Structure
 
@@ -60,6 +61,30 @@
  - Format with Prettier.
  - Use strict TypeScript.
  - Keep code readable and self-documented.
+
+## UI Conventions
+
+ - Prefer shadcn/ui blocks and components to build consistent, accessible, and themeable UI at speed.
+ - Leverage shadcn patterns and utilities alongside Tailwind CSS to reduce custom styling and ensure a cohesive design system.
+ - Extend or customize shadcn components only when necessary, adhering to the project's theming and accessibility guidelines.
+
+## Data Persistence / Database Interface
+We will implement a unified data access interface to abstract underlying storage and enable a smooth transition from local (SQLite) to remote (PostgreSQL) backends.
+
+### Technical Approach
+- Define a TypeScript interface (e.g., `IDataStore`) in `src/common/interfaces/db.ts` to encapsulate CRUD operations and data models.
+- Provide two implementations:
+  - `SQLiteDataStore` for local development, using `better-sqlite3` or `sqlite3` and storing data in a local file (e.g., under Electron `app.getPath('userData')`).
+  - `PostgresDataStore` for production, using `pg` or an ORM (e.g., Prisma, TypeORM) with configuration via environment variables.
+- Use a factory or dependency injection at startup to select the appropriate implementation based on environment or build flags.
+- Manage schema migrations with tools like Prisma Migrate, TypeORM Migrations, or Umzug, and store migration scripts in `src/main/storage/migrations/`.
+- Expose data operations through the typed preload IPC bridge, ensuring context isolation and type safety for renderer processes.
+- Write unit tests for each store implementation to guarantee consistent behavior and catch regressions early.
+
+### Suggested Folder Organization
+- `src/common/interfaces/db.ts` – defines `IDataStore` and shared TypeScript types for entities.
+- `src/main/storage/` – contains concrete implementations (`SQLiteDataStore.ts`, `PostgresDataStore.ts`), migration scripts, and factory logic.
+- `src/preload/db.ts` – exposes a thin, typed IPC API (e.g., `ipcRenderer.invoke('db:get', key)`) for safe data access from the renderer.
 
  ## Security
 
