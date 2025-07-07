@@ -1,11 +1,58 @@
+import React from 'react'
+import { useRenamer } from './hooks/useRenamer'
+import { Toolbar } from './components/Toolbar'
+import { PreviewPanel } from './components/PreviewPanel'
+import { FilesTable } from './components/FilesTable'
+import { TagsPanel } from './components/TagsPanel'
+import { RenamePreviewSheet } from './components/RenamePreviewSheet'
+
 export function Renamer(): React.ReactElement {
+  const {
+    files,
+    selected,
+    setSelected,
+    prefixNumber,
+    setPrefixNumber,
+    previewWidth,
+    onGutterMouseDown,
+    handleImport,
+    allTags,
+    toggleTag,
+    handleSuffixChange,
+    getPreviewNames,
+    previewOpen,
+    setPreviewOpen,
+  } = useRenamer()
+
+  const previewNames = getPreviewNames()
+
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold">Renamer Page</h1>
-      <p className="mt-2 text-gray-600">
-        This page is designed to help you rename files and directories efficiently.
-      </p>
-      {/* Add your renaming functionality here */}
+    <div className="h-full w-full flex flex-col">
+      <Toolbar
+        onImport={handleImport}
+        prefixNumber={prefixNumber}
+        setPrefixNumber={setPrefixNumber}
+        onPreview={() => setPreviewOpen(true)}
+      />
+      <div className="flex flex-1 overflow-hidden">
+        <PreviewPanel selected={selected} width={previewWidth} />
+        <div
+          className="w-1 cursor-col-resize bg-gray-200"
+          onMouseDown={onGutterMouseDown}
+        />
+        <FilesTable
+          files={files}
+          selected={selected}
+          setSelected={setSelected}
+          onSuffixChange={handleSuffixChange}
+        />
+      </div>
+      <TagsPanel allTags={allTags} selected={selected} toggleTag={toggleTag} />
+      <RenamePreviewSheet
+        names={previewNames}
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+      />
     </div>
-  );
+  )
 }

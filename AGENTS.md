@@ -35,6 +35,13 @@
        - components: Reusable UI components
        - lib: Shared utility functions
        - env.d.ts: Environment type declarations
+       - pages: Application pages
+         - programs
+           - renamer
+             - components: Presentation components (Toolbar, PreviewPanel, FilesTable, TagsPanel, RenamePreviewSheet)
+             - hooks: Custom hooks (useRenamer)
+             - types.ts: Shared TypeScript types for Renamer
+             - Renamer.tsx: Main Renamer page entry
  - out: Build output directory (compiled code)
  - node_modules: Project dependencies
  - Configuration files: `package.json`, `tsconfig.json`, `tsconfig.node.json`, `tsconfig.web.json`, `vite.config.ts`, `electron-builder.yml`, `eslint.config.mjs`
