@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, dialog } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
@@ -71,6 +71,17 @@ app.whenReady().then(async () => {
   })
   ipcMain.handle('db:delete', async (_event, table: string, id: number) => {
     return dataStore.delete(table, id)
+  })
+  // IPC handler to select a directory via native dialog
+  ipcMain.handle('dialog:selectDirectory', async (_event, defaultPath: string) => {
+    const { canceled, filePaths } = await dialog.showOpenDialog({
+      properties: ['openDirectory'],
+      defaultPath: defaultPath || undefined,
+    })
+    if (canceled || filePaths.length === 0) {
+      return null
+    }
+    return filePaths[0]
   })
 
   // Initialize the data store (run migrations, etc.)

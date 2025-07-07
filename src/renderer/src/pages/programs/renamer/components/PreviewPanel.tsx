@@ -9,11 +9,11 @@ interface PreviewPanelProps {
 export function PreviewPanel({ selected, width }: PreviewPanelProps) {
   return (
     <div
-      className="flex flex-col bg-black overflow-auto"
+      className="flex flex-col bg-background overflow-auto"
       style={{ width }}
     >
-      <div className="p-2 bg-gray-100">
-        <h3 className="font-medium">Preview</h3>
+      <div className="p-2 bg-popover border-b border-border">
+        <h3 className="text-foreground font-medium">Preview</h3>
       </div>
       <div className="flex-1 flex items-center justify-center">
         {selected &&

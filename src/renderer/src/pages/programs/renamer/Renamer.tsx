@@ -5,6 +5,7 @@ import { PreviewPanel } from './components/PreviewPanel'
 import { FilesTable } from './components/FilesTable'
 import { TagsPanel } from './components/TagsPanel'
 import { RenamePreviewSheet } from './components/RenamePreviewSheet'
+import { SettingsDialog } from './components/SettingsDialog'
 
 export function Renamer(): React.ReactElement {
   const {
@@ -16,12 +17,17 @@ export function Renamer(): React.ReactElement {
     previewWidth,
     onGutterMouseDown,
     handleImport,
-    allTags,
+    handleImportFlat,
+    tagOptions,
     toggleTag,
     handleSuffixChange,
     getPreviewNames,
     previewOpen,
     setPreviewOpen,
+    settingsOpen,
+    setSettingsOpen,
+    settings,
+    setSettings,
   } = useRenamer()
 
   const previewNames = getPreviewNames()
@@ -29,10 +35,13 @@ export function Renamer(): React.ReactElement {
   return (
     <div className="h-full w-full flex flex-col">
       <Toolbar
-        onImport={handleImport}
+        onImport={handleImportFlat}
+        onImportRecursive={handleImport}
+        onSettings={() => setSettingsOpen(true)}
         prefixNumber={prefixNumber}
         setPrefixNumber={setPrefixNumber}
         onPreview={() => setPreviewOpen(true)}
+        allowedFileTypes={settings.allowedFileTypes}
       />
       <div className="flex flex-1 overflow-hidden">
         <PreviewPanel selected={selected} width={previewWidth} />
@@ -47,11 +56,17 @@ export function Renamer(): React.ReactElement {
           onSuffixChange={handleSuffixChange}
         />
       </div>
-      <TagsPanel allTags={allTags} selected={selected} toggleTag={toggleTag} />
+      <TagsPanel allTags={tagOptions} selected={selected} toggleTag={toggleTag} />
       <RenamePreviewSheet
         names={previewNames}
         open={previewOpen}
         onOpenChange={setPreviewOpen}
+      />
+      <SettingsDialog
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+        settings={settings}
+        setSettings={setSettings}
       />
     </div>
   )

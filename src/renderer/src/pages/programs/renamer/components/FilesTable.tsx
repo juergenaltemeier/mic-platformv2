@@ -24,7 +24,7 @@ export function FilesTable({
   onSuffixChange,
 }: FilesTableProps) {
   return (
-    <div className="flex-1 overflow-auto bg-white">
+    <div className="flex-1 overflow-auto bg-background">
       <div className="p-2">
         <h3 className="font-medium mb-2">Files</h3>
         <Table>
@@ -38,12 +38,12 @@ export function FilesTable({
           </TableHeader>
           <TableBody>
             {files.map((f) => (
-              <TableRow
-                key={f.previewUrl}
-                className="cursor-pointer hover:bg-gray-100"
-                onClick={() => setSelected(f)}
-                data-state={selected === f ? 'selected' : undefined}
-              >
+            <TableRow
+              key={f.previewUrl}
+              className="cursor-pointer"
+              onClick={() => setSelected(f)}
+              data-state={selected === f ? 'selected' : undefined}
+            >
                 <TableCell>{f.oldName}</TableCell>
                 <TableCell>{f.tags.join(', ')}</TableCell>
                 <TableCell>

@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { FileEntry } from '../types'
 
 /**
@@ -8,15 +8,66 @@ export function useRenamer() {
   const [files, setFiles] = useState<FileEntry[]>([])
   const [selected, setSelected] = useState<FileEntry | null>(null)
   const [prefixNumber, setPrefixNumber] = useState<string>('')
-  const [previewWidth, setPreviewWidth] = useState<number>(400)
+  const [previewWidth, setPreviewWidth] = useState<number>(() =>
+    typeof window !== 'undefined' ? window.innerWidth * 0.4 : 400
+  )
   const [previewOpen, setPreviewOpen] = useState<boolean>(false)
+  // Settings dialog open state
+  const [settingsOpen, setSettingsOpen] = useState<boolean>(false)
+  // Renamer settings persisted in localStorage
+  interface RenamerSettings {
+    defaultImportFolder: string
+    allowedFileTypes: string[]
+  }
+  const defaultSettings: RenamerSettings = {
+    defaultImportFolder: '',
+    allowedFileTypes: [
+      'jpg', 'jpeg', 'png', 'gif', 'bmp',
+      'mp4', 'mov', 'avi', 'mkv',
+    ],
+  }
+  const [settings, setSettings] = useState<RenamerSettings>(defaultSettings)
+  // Load settings from localStorage on mount
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('renamerSettings')
+      if (stored) {
+        setSettings(JSON.parse(stored))
+      }
+    } catch {
+      // ignore parse errors
+    }
+  }, [])
+  // Persist settings to localStorage on change
+  useEffect(() => {
+    try {
+      localStorage.setItem('renamerSettings', JSON.stringify(settings))
+    } catch {
+      // ignore storage errors
+    }
+  }, [settings])
 
-  // Import folder via input[webkitdirectory]
-  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const fileList = e.target.files
-    if (!fileList) return
-    const entries: FileEntry[] = Array.from(fileList)
+  // Helper to import files from a folder event (recursive or flat)
+  const importFromEvent = (
+    filesList: FileList,
+    recursive: boolean
+  ) => {
+    const entries: FileEntry[] = Array.from(filesList)
+      // filter by allowed file extensions
+      .filter((f) => {
+        const parts = f.name.split('.')
+        const ext = parts.length > 1 ? parts.pop()!.toLowerCase() : ''
+        return settings.allowedFileTypes.includes(ext)
+      })
+      // filter by mime type image/video
       .filter((f) => f.type.startsWith('image') || f.type.startsWith('video'))
+      .filter((f: any) => {
+        if (recursive) return true
+        const path = (f as any).webkitRelativePath as string | undefined
+        if (!path) return true
+        // flat: only top-level files (no extra subdirectories)
+        return path.split('/').length <= 2
+      })
       .map((f) => ({
         file: f,
         oldName: f.name,
@@ -29,8 +80,25 @@ export function useRenamer() {
     if (entries.length > 0) setSelected(entries[0])
   }
 
-  // All unique tags from files
-  const allTags = Array.from(new Set(files.flatMap((f) => f.tags)))
+  // Import all files recursively
+  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const fileList = e.target.files
+    if (!fileList) return
+    importFromEvent(fileList, true)
+  }
+  // Import only top-level files (flat)
+  const handleImportFlat = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const fileList = e.target.files
+    if (!fileList) return
+    importFromEvent(fileList, false)
+  }
+
+  // Available tags with descriptions
+  const tagOptions = [
+    { id: 'AU', label: 'Autoclave' },
+    { id: 'VC', label: 'Vacuum Unit' },
+    { id: 'HS', label: 'Heating System' },
+  ]
 
   // Toggle tag on selected file
   const toggleTag = (tag: string) => {
@@ -100,11 +168,18 @@ export function useRenamer() {
     previewWidth,
     onGutterMouseDown,
     handleImport,
-    allTags,
+    handleImportFlat,
+    // available tags list
+    tagOptions,
     toggleTag,
     handleSuffixChange,
     getPreviewNames,
     previewOpen,
     setPreviewOpen,
+    settingsOpen,
+    setSettingsOpen,
+    // renamer settings
+    settings,
+    setSettings,
   }
 }
