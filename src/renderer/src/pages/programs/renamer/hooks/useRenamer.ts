@@ -1,5 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { FileEntry } from '../types'
+import tagsJson from '../config/tags.json'
+import { defaults } from '../config/defaults'
 
 /**
  * Custom hook for Renamer page state and logic
@@ -20,11 +22,11 @@ export function useRenamer() {
     allowedFileTypes: string[]
   }
   const defaultSettings: RenamerSettings = {
-    defaultImportFolder: '',
-    allowedFileTypes: [
-      'jpg', 'jpeg', 'png', 'gif', 'bmp',
-      'mp4', 'mov', 'avi', 'mkv',
-    ],
+    defaultImportFolder: defaults.defaultImportDirectory,
+    // initialize allowed file types from defaults, stripping leading dots
+    allowedFileTypes: defaults.acceptedExtensions.map((ext) =>
+      ext.replace(/^\./, '')
+    ),
   }
   const [settings, setSettings] = useState<RenamerSettings>(defaultSettings)
   // Load settings from localStorage on mount
@@ -93,12 +95,12 @@ export function useRenamer() {
     importFromEvent(fileList, false)
   }
 
-  // Available tags with descriptions
-  const tagOptions = [
-    { id: 'AU', label: 'Autoclave' },
-    { id: 'VC', label: 'Vacuum Unit' },
-    { id: 'HS', label: 'Heating System' },
-  ]
+  // Available tags loaded from JSON config, using selected language
+  const tagOptions = Object.entries(tagsJson).map(([id, labels]) => ({
+    id,
+    label: (labels as Record<string, string>)[defaults.language] ||
+           (labels as Record<string, string>)['en'] || id,
+  }))
 
   // Toggle tag on selected file
   const toggleTag = (tag: string) => {
@@ -120,6 +122,56 @@ export function useRenamer() {
     const newFiles = files.map((f) => (f === entry ? { ...f, suffix: newSuffix } : f))
     setFiles(newFiles)
     if (selected === entry) setSelected({ ...entry, suffix: newSuffix })
+  }
+  // Compress selected items (stub)
+  const handleCompress = () => {
+    console.log('Compress selected items', selected)
+  }
+  // Convert selected HEIC to JPEG (stub)
+  const handleConvertHEIC = () => {
+    console.log('Convert HEIC for selected items', selected)
+  }
+  // Undo rename (stub)
+  const handleUndo = () => {
+    console.log('Undo rename')
+  }
+  // Remove selected files
+  const handleRemoveSelected = () => {
+    if (selected) {
+      setFiles((prev) => prev.filter((f) => f !== selected))
+      setSelected(null)
+    }
+  }
+  // Clear suffix for selected files
+  const handleClearSuffix = () => {
+    if (selected) {
+      const newFiles = files.map((f) => (f === selected ? { ...f, suffix: '' } : f))
+      setFiles(newFiles)
+      setSelected({ ...selected, suffix: '' })
+    }
+  }
+  // Clear all files
+  const handleClearAll = () => {
+    setFiles([])
+    setSelected(null)
+  }
+  // Restore session (stub)
+  const handleRestoreSession = () => {
+    console.log('Restore session (not implemented)')
+  }
+  // Set default import directory via native dialog
+  const handleSetImportDirectory = async () => {
+    try {
+      const selectedDir: string | null = await window.electron.ipcRenderer.invoke(
+        'dialog:selectDirectory',
+        settings.defaultImportFolder
+      )
+      if (selectedDir) {
+        setSettings({ ...settings, defaultImportFolder: selectedDir })
+      }
+    } catch {
+      // ignore
+    }
   }
 
   // Generate preview names for rename
@@ -181,5 +233,14 @@ export function useRenamer() {
     // renamer settings
     settings,
     setSettings,
+    // additional commands
+    handleSetImportDirectory,
+    handleCompress,
+    handleConvertHEIC,
+    handleUndo,
+    handleRemoveSelected,
+    handleClearSuffix,
+    handleClearAll,
+    handleRestoreSession,
   }
 }

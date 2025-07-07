@@ -18,6 +18,14 @@ export function Renamer(): React.ReactElement {
     onGutterMouseDown,
     handleImport,
     handleImportFlat,
+    handleSetImportDirectory,
+    handleCompress,
+    handleConvertHEIC,
+    handleUndo,
+    handleRemoveSelected,
+    handleClearSuffix,
+    handleClearAll,
+    handleRestoreSession,
     tagOptions,
     toggleTag,
     handleSuffixChange,
@@ -38,10 +46,18 @@ export function Renamer(): React.ReactElement {
         onImport={handleImportFlat}
         onImportRecursive={handleImport}
         onSettings={() => setSettingsOpen(true)}
+        onSetImportDirectory={handleSetImportDirectory}
         prefixNumber={prefixNumber}
         setPrefixNumber={setPrefixNumber}
         onPreview={() => setPreviewOpen(true)}
         allowedFileTypes={settings.allowedFileTypes}
+        onCompress={handleCompress}
+        onConvertHEIC={handleConvertHEIC}
+        onUndo={handleUndo}
+        onRemoveSelected={handleRemoveSelected}
+        onClearSuffix={handleClearSuffix}
+        onClearAll={handleClearAll}
+        onRestoreSession={handleRestoreSession}
       />
       <div className="flex flex-1 overflow-hidden">
         <PreviewPanel selected={selected} width={previewWidth} />
