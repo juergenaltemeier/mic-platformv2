@@ -65,3 +65,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+/* Scale down global REM-based sizes by adjusting root font size */
+html {
+  font-size: 87.5%; /* 14px on default 16px base */
+}

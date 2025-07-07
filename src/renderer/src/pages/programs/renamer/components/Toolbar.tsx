@@ -1,13 +1,14 @@
 import { useRef, type ChangeEvent } from 'react'
 import { Button } from '@/components/ui/button'
 import {
-  NavigationMenu,
-  NavigationMenuList,
-  NavigationMenuItem,
-  NavigationMenuTrigger,
-  NavigationMenuContent,
-} from '@/components/ui/navigation-menu'
-import { Input } from '@/components/ui/input'
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu'
+import { ChevronDownIcon } from 'lucide-react'
+import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp'
 
 interface ToolbarProps {
   onImport: (e: ChangeEvent<HTMLInputElement>) => void
@@ -50,78 +51,96 @@ export function Toolbar({
   // build accept string from allowed file types
   const accept = allowedFileTypes.map((ext) => `.${ext}`).join(',')
   return (
-    <Menubar className="w-full bg-background border-b border-border">
-      <div className="flex items-center gap-2">
-        {/* File Menu */}
-        <MenubarMenu>
-          <MenubarTrigger>File</MenubarTrigger>
-          <MenubarContent>
-            <MenubarItem onSelect={() => fileInputRef.current?.click()}>Add Files</MenubarItem>
-            <MenubarItem onSelect={() => flatInputRef.current?.click()}>Add Folder</MenubarItem>
-            <MenubarItem onSelect={() => recInputRef.current?.click()}>Add Folder (recursive)</MenubarItem>
-            <MenubarSeparator />
-            <MenubarItem onSelect={onSetImportDirectory}>Set Import Directory</MenubarItem>
-          </MenubarContent>
-        </MenubarMenu>
-        {/* Hidden inputs for import */}
-        <input
-          type="file"
-          multiple
-          hidden
-          ref={fileInputRef}
-          accept={accept}
-          onChange={onImport}
-        />
-        <input
-          {...({ webkitdirectory: true } as any)}
-          type="file"
-          multiple
-          hidden
-          ref={flatInputRef}
-          accept={accept}
-          onChange={onImport}
-        />
-        <input
-          {...({ webkitdirectory: true } as any)}
-          type="file"
-          multiple
-          hidden
-          ref={recInputRef}
-          accept={accept}
-          onChange={onImportRecursive}
-        />
-        {/* Edit Menu */}
-        <MenubarMenu>
-          <MenubarTrigger>Edit</MenubarTrigger>
-          <MenubarContent>
-            <MenubarItem onSelect={onCompress}>Compress</MenubarItem>
-            <MenubarItem onSelect={onConvertHEIC}>Convert HEIC</MenubarItem>
-            <MenubarSeparator />
-            <MenubarItem onSelect={onUndo}>Undo Rename</MenubarItem>
-            <MenubarSeparator />
-            <MenubarItem onSelect={onRemoveSelected}>Remove Selected</MenubarItem>
-            <MenubarItem onSelect={onClearSuffix}>Clear Suffix</MenubarItem>
-            <MenubarItem onSelect={onClearAll}>Clear List</MenubarItem>
-            <MenubarSeparator />
-            <MenubarItem onSelect={onRestoreSession}>Restore Session</MenubarItem>
-            <MenubarSeparator />
-            <MenubarItem onSelect={onSettings}>Settings</MenubarItem>
-          </MenubarContent>
-        </MenubarMenu>
-      </div>
-      <div className="ml-auto flex items-center gap-4">
-        <div className="flex items-center space-x-1">
+    <div className="w-full bg-background border-b border-border">
+      <div className="flex items-start justify-start gap-4 p-2">
+        {/* File Dropdown */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="flex items-center gap-1">
+              File <ChevronDownIcon className="size-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem onSelect={() => fileInputRef.current?.click()}>
+              Add Files
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => flatInputRef.current?.click()}>
+              Add Folder
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => recInputRef.current?.click()}>
+              Add Folder (recursive)
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onSelect={onSetImportDirectory}>
+              Set Import Directory
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        {/* Edit Dropdown */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="flex items-center gap-1">
+              Edit <ChevronDownIcon className="size-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem onSelect={onCompress}>Compress</DropdownMenuItem>
+            <DropdownMenuItem onSelect={onConvertHEIC}>Convert HEIC</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onSelect={onUndo}>Undo Rename</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onSelect={onRemoveSelected}>Remove Selected</DropdownMenuItem>
+            <DropdownMenuItem onSelect={onClearSuffix}>Clear Suffix</DropdownMenuItem>
+            <DropdownMenuItem onSelect={onClearAll}>Clear List</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onSelect={onRestoreSession}>Restore Session</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onSelect={onSettings}>Settings</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        {/* Prefix Input */}
+        <div className="flex items-center space-x-2">
           <span className="font-bold">C</span>
-          <Input
-            value={prefixNumber}
-            onChange={(e) => setPrefixNumber(e.target.value)}
-            placeholder="123456"
+          <InputOTP
             maxLength={6}
-            className="w-24 text-center font-mono tracking-widest"
-          />
+            value={prefixNumber}
+            onChange={setPrefixNumber}
+            containerClassName=""
+            className="gap-1"
+          >
+            <InputOTPGroup>
+              <InputOTPSlot index={0} />
+              <InputOTPSlot index={1} />
+              <InputOTPSlot index={2} />
+              <InputOTPSlot index={3} />
+              <InputOTPSlot index={4} />
+              <InputOTPSlot index={5} />
+            </InputOTPGroup>
+          </InputOTP>
         </div>
+        {/* Preview Button */}
         <Button onClick={onPreview}>Rename Preview</Button>
       </div>
-    </Menubar>
+      {/* Hidden inputs for import actions */}
+      <input type="file" multiple hidden ref={fileInputRef} accept={accept} onChange={onImport} />
+      <input
+        {...({ webkitdirectory: true } as any)}
+        type="file"
+        multiple
+        hidden
+        ref={flatInputRef}
+        accept={accept}
+        onChange={onImport}
+      />
+      <input
+        {...({ webkitdirectory: true } as any)}
+        type="file"
+        multiple
+        hidden
+        ref={recInputRef}
+        accept={accept}
+        onChange={onImportRecursive}
+      />
+    </div>
   )
 }

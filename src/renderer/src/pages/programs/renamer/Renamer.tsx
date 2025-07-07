@@ -1,5 +1,10 @@
 import React from 'react'
 import { useRenamer } from './hooks/useRenamer'
+import {
+  ResizablePanelGroup,
+  ResizablePanel,
+  ResizableHandle,
+} from '@/components/ui/resizable'
 import { Toolbar } from './components/Toolbar'
 import { PreviewPanel } from './components/PreviewPanel'
 import { FilesTable } from './components/FilesTable'
@@ -14,8 +19,6 @@ export function Renamer(): React.ReactElement {
     setSelected,
     prefixNumber,
     setPrefixNumber,
-    previewWidth,
-    onGutterMouseDown,
     handleImport,
     handleImportFlat,
     handleSetImportDirectory,
@@ -29,6 +32,8 @@ export function Renamer(): React.ReactElement {
     tagOptions,
     toggleTag,
     handleSuffixChange,
+    handleDateChange,
+    handleTagsInputChange,
     getPreviewNames,
     previewOpen,
     setPreviewOpen,
@@ -59,20 +64,30 @@ export function Renamer(): React.ReactElement {
         onClearAll={handleClearAll}
         onRestoreSession={handleRestoreSession}
       />
-      <div className="flex flex-1 overflow-hidden">
-        <PreviewPanel selected={selected} width={previewWidth} />
-        <div
-          className="w-1 cursor-col-resize bg-gray-200"
-          onMouseDown={onGutterMouseDown}
-        />
-        <FilesTable
-          files={files}
-          selected={selected}
-          setSelected={setSelected}
-          onSuffixChange={handleSuffixChange}
-        />
-      </div>
-      <TagsPanel allTags={tagOptions} selected={selected} toggleTag={toggleTag} />
+      <ResizablePanelGroup direction="vertical" className="flex-1 overflow-hidden">
+        <ResizablePanel defaultSize={70} minSize={20}>
+            <ResizablePanelGroup direction="horizontal" className="h-full">
+              <ResizablePanel defaultSize={30} minSize={10}>
+                <PreviewPanel selected={selected} />
+              </ResizablePanel>
+              <ResizableHandle withHandle />
+              <ResizablePanel>
+                <FilesTable
+                  files={files}
+                  setSelected={setSelected}
+                  onSuffixChange={handleSuffixChange}
+                  onDateChange={handleDateChange}
+                  onTagsChange={handleTagsInputChange}
+                  availableTags={tagOptions.map(t => t.id)}
+                />
+              </ResizablePanel>
+            </ResizablePanelGroup>
+        </ResizablePanel>
+        <ResizableHandle />
+        <ResizablePanel defaultSize={20} minSize={10} className="overflow-auto">
+          <TagsPanel allTags={tagOptions} selected={selected} toggleTag={toggleTag} />
+        </ResizablePanel>
+      </ResizablePanelGroup>
       <RenamePreviewSheet
         names={previewNames}
         open={previewOpen}

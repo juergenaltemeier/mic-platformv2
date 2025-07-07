@@ -123,6 +123,27 @@ export function useRenamer() {
     setFiles(newFiles)
     if (selected === entry) setSelected({ ...entry, suffix: newSuffix })
   }
+  // Update date on a file entry from YYYY-MM-DD string
+  const handleDateChange = (
+    entry: FileEntry,
+    dateString: string
+  ) => {
+    const ts = new Date(dateString).getTime()
+    const newFiles = files.map((f) => (f === entry ? { ...f, date: ts } : f))
+    setFiles(newFiles)
+    if (selected === entry) setSelected({ ...entry, date: ts })
+  }
+  // Update tags on a file entry from comma/space separated string
+  const handleTagsInputChange = (
+    entry: FileEntry,
+    tagsString: string
+  ) => {
+    // Split tags by comma or semicolon separators
+    const tagsArr = tagsString.split(/[;,]+/).map(t => t.trim()).filter(Boolean)
+    const newFiles = files.map((f) => (f === entry ? { ...f, tags: tagsArr } : f))
+    setFiles(newFiles)
+    if (selected === entry) setSelected({ ...entry, tags: tagsArr })
+  }
   // Compress selected items (stub)
   const handleCompress = () => {
     console.log('Compress selected items', selected)
@@ -242,5 +263,7 @@ export function useRenamer() {
     handleClearSuffix,
     handleClearAll,
     handleRestoreSession,
+    handleDateChange,
+    handleTagsInputChange,
   }
 }
