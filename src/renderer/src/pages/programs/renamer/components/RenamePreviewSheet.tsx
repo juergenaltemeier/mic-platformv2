@@ -1,4 +1,3 @@
-// JSX runtime import not needed with React 17+ JSX transform
 import {
   Sheet,
   SheetContent,
@@ -6,29 +5,33 @@ import {
   SheetTitle,
   SheetDescription,
 } from '@/components/ui/sheet'
+import { FileEntry } from '../types'
 
 interface RenamePreviewSheetProps {
-  names: string[]
-  open: boolean
+  files: FileEntry[]
+  getPreviewNames: () => string[]
+  isOpen: boolean
   onOpenChange: (open: boolean) => void
 }
 
 export function RenamePreviewSheet({
-  names,
-  open,
+  files,
+  getPreviewNames,
+  isOpen,
   onOpenChange,
 }: RenamePreviewSheetProps) {
+  const newNames = getPreviewNames()
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <Sheet open={isOpen} onOpenChange={onOpenChange}>
       <SheetContent side="bottom">
         <SheetHeader>
           <SheetTitle>Rename Preview</SheetTitle>
           <SheetDescription>Review your new file names before renaming.</SheetDescription>
         </SheetHeader>
         <div className="p-4 space-y-1">
-          {names.map((n) => (
-            <div key={n} className="text-sm font-mono">
-              {n}
+          {files.map((file, index) => (
+            <div key={file.oldName} className="text-sm font-mono">
+              {file.oldName} -&gt; {newNames[index]}
             </div>
           ))}
         </div>

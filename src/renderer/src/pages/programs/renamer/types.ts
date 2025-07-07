@@ -1,5 +1,4 @@
-// FileEntry and related types for the Renamer tool
-export interface FileEntry {
+export type FileEntry = {
   file: File
   oldName: string
   tags: string[]

@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect } from 'react'
 import { FileEntry } from '../types'
 import tagsJson from '../config/tags.json'
 import { defaults } from '../config/defaults'
+import { fileToDataUrl } from '@/lib/utils'
 
 /**
  * Custom hook for Renamer page state and logic
@@ -50,11 +51,11 @@ export function useRenamer() {
   }, [settings])
 
   // Helper to import files from a folder event (recursive or flat)
-  const importFromEvent = (
+  const importFromEvent = async (
     filesList: FileList,
     recursive: boolean
   ) => {
-    const entries: FileEntry[] = Array.from(filesList)
+    const fileArray = Array.from(filesList)
       // filter by allowed file extensions
       .filter((f) => {
         const parts = f.name.split('.')
@@ -70,14 +71,21 @@ export function useRenamer() {
         // flat: only top-level files (no extra subdirectories)
         return path.split('/').length <= 2
       })
-      .map((f) => ({
-        file: f,
-        oldName: f.name,
-        tags: [],
-        date: f.lastModified,
-        suffix: '',
-        previewUrl: URL.createObjectURL(f),
-      }))
+
+    const entries = await Promise.all(
+      fileArray.map(async (f) => {
+        const previewUrl = await fileToDataUrl(f)
+        return {
+          file: f,
+          oldName: f.name,
+          tags: [],
+          date: f.lastModified,
+          suffix: '',
+          previewUrl: previewUrl,
+        }
+      })
+    )
+
     setFiles(entries)
     if (entries.length > 0) setSelected(entries[0])
   }
@@ -232,6 +240,22 @@ export function useRenamer() {
     document.addEventListener('mouseup', onMouseUp)
   }
 
+    const selectNext = () => {
+    if (!selected) return
+    const currentIndex = files.findIndex((f) => f === selected)
+    if (currentIndex < files.length - 1) {
+      setSelected(files[currentIndex + 1])
+    }
+  }
+
+  const selectPrev = () => {
+    if (!selected) return
+    const currentIndex = files.findIndex((f) => f === selected)
+    if (currentIndex > 0) {
+      setSelected(files[currentIndex - 1])
+    }
+  }
+
   return {
     files,
     selected,
@@ -265,5 +289,7 @@ export function useRenamer() {
     handleRestoreSession,
     handleDateChange,
     handleTagsInputChange,
+    selectNext,
+    selectPrev,
   }
 }

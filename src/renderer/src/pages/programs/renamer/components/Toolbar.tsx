@@ -12,7 +12,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp
 
 interface ToolbarProps {
   onImport: (e: ChangeEvent<HTMLInputElement>) => void
-  onImportRecursive: (e: ChangeEvent<HTMLInputElement>) => void
+  onImportFlat: (e: ChangeEvent<HTMLInputElement>) => void
   onSettings: () => void
   onSetImportDirectory: () => void
   prefixNumber: string
@@ -30,7 +30,7 @@ interface ToolbarProps {
 
 export function Toolbar({
   onImport,
-  onImportRecursive,
+  onImportFlat,
   onSettings,
   onSetImportDirectory,
   prefixNumber,
@@ -139,7 +139,7 @@ export function Toolbar({
         hidden
         ref={recInputRef}
         accept={accept}
-        onChange={onImportRecursive}
+        onChange={onImportFlat}
       />
     </div>
   )

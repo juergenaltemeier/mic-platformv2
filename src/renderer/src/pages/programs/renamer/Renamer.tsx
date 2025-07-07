@@ -1,18 +1,18 @@
-import React from 'react'
-import { useRenamer } from './hooks/useRenamer'
 import {
-  ResizablePanelGroup,
-  ResizablePanel,
   ResizableHandle,
-} from '@/components/ui/resizable'
-import { Toolbar } from './components/Toolbar'
-import { PreviewPanel } from './components/PreviewPanel'
-import { FilesTable } from './components/FilesTable'
-import { TagsPanel } from './components/TagsPanel'
-import { RenamePreviewSheet } from './components/RenamePreviewSheet'
-import { SettingsDialog } from './components/SettingsDialog'
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/components/ui/resizable"
+import { Toolbar } from "./components/Toolbar"
+import { useRenamer } from "./hooks/useRenamer"
+import { FilesTable } from "./components/FilesTable"
+import { PreviewPanel } from "./components/PreviewPanel"
+import { TagsPanel } from "./components/TagsPanel"
+import { RenamePreviewSheet } from "./components/RenamePreviewSheet"
 
-export function Renamer(): React.ReactElement {
+import { TooltipProvider } from "@/components/ui/tooltip"
+
+export const Renamer = () => {
   const {
     files,
     selected,
@@ -21,84 +21,83 @@ export function Renamer(): React.ReactElement {
     setPrefixNumber,
     handleImport,
     handleImportFlat,
+    tagOptions,
+    toggleTag,
+    getPreviewNames,
+    previewOpen,
+    setPreviewOpen,
+    handleClearAll,
+    handleRemoveSelected,
+    settings,
+    handleClearSuffix,
+    handleRestoreSession,
+    setSettingsOpen,
     handleSetImportDirectory,
     handleCompress,
     handleConvertHEIC,
     handleUndo,
-    handleRemoveSelected,
-    handleClearSuffix,
-    handleClearAll,
-    handleRestoreSession,
-    tagOptions,
-    toggleTag,
-    handleSuffixChange,
-    handleDateChange,
-    handleTagsInputChange,
-    getPreviewNames,
-    previewOpen,
-    setPreviewOpen,
-    settingsOpen,
-    setSettingsOpen,
-    settings,
-    setSettings,
+    selectNext,
+    selectPrev,
   } = useRenamer()
 
-  const previewNames = getPreviewNames()
-
   return (
-    <div className="h-full w-full flex flex-col">
-      <Toolbar
-        onImport={handleImportFlat}
-        onImportRecursive={handleImport}
-        onSettings={() => setSettingsOpen(true)}
-        onSetImportDirectory={handleSetImportDirectory}
-        prefixNumber={prefixNumber}
-        setPrefixNumber={setPrefixNumber}
-        onPreview={() => setPreviewOpen(true)}
-        allowedFileTypes={settings.allowedFileTypes}
-        onCompress={handleCompress}
-        onConvertHEIC={handleConvertHEIC}
-        onUndo={handleUndo}
-        onRemoveSelected={handleRemoveSelected}
-        onClearSuffix={handleClearSuffix}
-        onClearAll={handleClearAll}
-        onRestoreSession={handleRestoreSession}
-      />
-      <ResizablePanelGroup direction="vertical" className="flex-1 overflow-hidden">
-        <ResizablePanel defaultSize={70} minSize={20}>
-            <ResizablePanelGroup direction="horizontal" className="h-full">
-              <ResizablePanel defaultSize={30} minSize={10}>
-                <PreviewPanel selected={selected} />
-              </ResizablePanel>
-              <ResizableHandle withHandle />
-              <ResizablePanel>
-                <FilesTable
-                  files={files}
-                  setSelected={setSelected}
-                  onSuffixChange={handleSuffixChange}
-                  onDateChange={handleDateChange}
-                  onTagsChange={handleTagsInputChange}
-                  availableTags={tagOptions.map(t => t.id)}
-                />
-              </ResizablePanel>
-            </ResizablePanelGroup>
-        </ResizablePanel>
-        <ResizableHandle />
-        <ResizablePanel defaultSize={20} minSize={10} className="overflow-auto">
-          <TagsPanel allTags={tagOptions} selected={selected} toggleTag={toggleTag} />
-        </ResizablePanel>
-      </ResizablePanelGroup>
-      <RenamePreviewSheet
-        names={previewNames}
-        open={previewOpen}
-        onOpenChange={setPreviewOpen}
-      />
-      <SettingsDialog
-        open={settingsOpen}
-        onOpenChange={setSettingsOpen}
-        settings={settings}
-        setSettings={setSettings}
-      />
-    </div>
+    <TooltipProvider>
+      <div className="flex flex-col h-full">
+        <Toolbar
+          prefixNumber={prefixNumber}
+          setPrefixNumber={setPrefixNumber}
+          onImport={handleImport}
+          onImportFlat={handleImportFlat}
+          onPreview={() => setPreviewOpen(true)}
+          onClearAll={handleClearAll}
+          onRemoveSelected={handleRemoveSelected}
+          onSettings={() => setSettingsOpen(true)}
+          onSetImportDirectory={handleSetImportDirectory}
+          allowedFileTypes={settings.allowedFileTypes}
+          onCompress={handleCompress}
+          onConvertHEIC={handleConvertHEIC}
+          onUndo={handleUndo}
+          onClearSuffix={handleClearSuffix}
+          onRestoreSession={handleRestoreSession}
+        />
+        <div className="flex-1 overflow-hidden">
+          <ResizablePanelGroup direction="horizontal">
+            <ResizablePanel>
+              <FilesTable
+                files={files}
+                setSelected={setSelected}
+                getPreviewNames={getPreviewNames}
+              />
+            </ResizablePanel>
+            <ResizableHandle withHandle />
+            <ResizablePanel defaultSize={30}>
+              <ResizablePanelGroup direction="vertical">
+                <ResizablePanel defaultSize={50}>
+                  <PreviewPanel
+                    selected={selected}
+                    onNext={selectNext ?? (() => {})}
+                    onPrev={selectPrev ?? (() => {})}
+                  />
+                </ResizablePanel>
+                <ResizableHandle withHandle />
+                <ResizablePanel defaultSize={50}>
+                  <TagsPanel
+                    selected={selected}
+                    tagOptions={tagOptions}
+                    onToggleTag={toggleTag}
+                  />
+                </ResizablePanel>
+              </ResizablePanelGroup>
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        </div>
+        <RenamePreviewSheet
+          isOpen={previewOpen}
+          onOpenChange={setPreviewOpen}
+          files={files}
+          getPreviewNames={getPreviewNames}
+        />
+      </div>
+    </TooltipProvider>
   )
 }
