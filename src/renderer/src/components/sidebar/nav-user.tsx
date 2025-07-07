@@ -4,9 +4,7 @@ import {
   BadgeCheck,
   Bell,
   ChevronsUpDown,
-  CreditCard,
   LogOut,
-  Sparkles,
 } from "lucide-react"
 
 import {
@@ -29,7 +27,6 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
-import { ModeToggle } from "./mode-toggle"
 
 export function NavUser({
   user,

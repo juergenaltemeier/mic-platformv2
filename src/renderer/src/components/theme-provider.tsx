@@ -23,41 +23,57 @@ const ThemeProviderContext = createContext<ThemeProviderState>(initialState)
 export function ThemeProvider({
   children,
   defaultTheme = "system",
-  storageKey = "vite-ui-theme",
-  ...props
 }: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>(
-    () => (localStorage.getItem(storageKey) as Theme) || defaultTheme
-  )
+  const [theme, setThemeState] = useState<Theme>(defaultTheme)
+  const [loading, setLoading] = useState<boolean>(true)
 
+  // Load theme from local JSON store on mount
   useEffect(() => {
-    const root = window.document.documentElement
-
-    root.classList.remove("light", "dark")
-
-    if (theme === "system") {
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
-        .matches
-        ? "dark"
-        : "light"
-
-      root.classList.add(systemTheme)
-      return
+    const load = async () => {
+      try {
+        type Pref = { id: number; theme: Theme }
+        const pref = await window.api.db.getById<Pref>('preferences', 1)
+        if (pref && pref.theme) {
+          setThemeState(pref.theme)
+        } else {
+          await window.api.db.create('preferences', { id: 1, theme: defaultTheme })
+          setThemeState(defaultTheme)
+        }
+      } finally {
+        setLoading(false)
+      }
     }
+    void load()
+  }, [defaultTheme])
 
-    root.classList.add(theme)
-  }, [theme])
+  // Apply theme class to document
+  useEffect(() => {
+    if (loading) return
+    const root = window.document.documentElement
+    root.classList.remove('light', 'dark')
+    const applied =
+      theme === 'system'
+        ? window.matchMedia('(prefers-color-scheme: dark)').matches
+          ? 'dark'
+          : 'light'
+        : theme
+    root.classList.add(applied)
+  }, [theme, loading])
 
-  const value = {
-    theme,
-    setTheme: (theme: Theme) => {
-      localStorage.setItem(storageKey, theme)
-      setTheme(theme)
-    },
+  const setTheme = async (newTheme: Theme) => {
+    setThemeState(newTheme)
+    type Pref = { id: number; theme: Theme }
+    const pref = await window.api.db.getById<Pref>('preferences', 1)
+    if (pref) {
+      await window.api.db.update('preferences', 1, { theme: newTheme })
+    } else {
+      await window.api.db.create('preferences', { id: 1, theme: newTheme })
+    }
   }
+  const value = { theme, setTheme, loading }
 
   return (
-    <ThemeProviderContext.Provider {...props} value={value}>
+    <ThemeProviderContext.Provider value={value}>
       {children}
     </ThemeProviderContext.Provider>
   )

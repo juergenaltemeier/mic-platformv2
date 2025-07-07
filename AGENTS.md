@@ -73,9 +73,10 @@ We will implement a unified data access interface to abstract underlying storage
 
 ### Technical Approach
 - Define a TypeScript interface (e.g., `IDataStore`) in `src/common/interfaces/db.ts` to encapsulate CRUD operations and data models.
-- Provide two implementations:
-  - `SQLiteDataStore` for local development, using `better-sqlite3` or `sqlite3` and storing data in a local file (e.g., under Electron `app.getPath('userData')`).
-  - `PostgresDataStore` for production, using `pg` or an ORM (e.g., Prisma, TypeORM) with configuration via environment variables.
+- Provide implementations for different environments:
+  - `LocalJsonDataStore` for local user preferences and tags, backed by a JSON file in `userData` (no native builds required).
+  - `SQLiteDataStore` for local relational storage (optional), using `better-sqlite3` or `sqlite3`.
+  - `PostgresDataStore` for production, using `pg` or an ORM (e.g., Prisma, TypeORM) configured via environment variables.
 - Use a factory or dependency injection at startup to select the appropriate implementation based on environment or build flags.
 - Manage schema migrations with tools like Prisma Migrate, TypeORM Migrations, or Umzug, and store migration scripts in `src/main/storage/migrations/`.
 - Expose data operations through the typed preload IPC bridge, ensuring context isolation and type safety for renderer processes.
@@ -83,8 +84,42 @@ We will implement a unified data access interface to abstract underlying storage
 
 ### Suggested Folder Organization
 - `src/common/interfaces/db.ts` – defines `IDataStore` and shared TypeScript types for entities.
-- `src/main/storage/` – contains concrete implementations (`SQLiteDataStore.ts`, `PostgresDataStore.ts`), migration scripts, and factory logic.
+- `src/main/storage/` – contains concrete implementations (`LocalJsonDataStore.ts`, `SQLiteDataStore.ts`, `PostgresDataStore.ts`), migration scripts, and factory logic.
 - `src/preload/db.ts` – exposes a thin, typed IPC API (e.g., `ipcRenderer.invoke('db:get', key)`) for safe data access from the renderer.
+  
+### Renderer Data Access Patterns
+- Use the exposed `window.api.db` functions in React components to fetch and persist data (e.g., preferences, tags).
+- Wrap your renderer root in a TanStack Query `QueryClientProvider` to manage async state and caching:
+
+  ```tsx
+  import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+  const queryClient = new QueryClient()
+  // in src/renderer/src/main.tsx render:
+  <QueryClientProvider client={queryClient}>
+    <RouterProvider router={router} />
+  </QueryClientProvider>
+  ```
+- Use `useQuery` to read data and `useMutation` to write:
+
+  ```ts
+  import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+
+  export function useThemePreference(defaultTheme: string) {
+    const qc = useQueryClient()
+    const { data: pref, isLoading } = useQuery(['preferences', 1], () =>
+      window.api.db.getById('preferences', 1)
+    )
+    const theme = pref?.theme ?? defaultTheme
+    const mutation = useMutation(
+      (newTheme: string) =>
+        pref
+          ? window.api.db.update('preferences', 1, { theme: newTheme })
+          : window.api.db.create('preferences', { id: 1, theme: newTheme }),
+      { onSuccess: () => qc.invalidateQueries(['preferences', 1]) }
+    )
+    return { theme, setTheme: mutation.mutate, isLoading }
+  }
+  ```
 
  ## Security
 

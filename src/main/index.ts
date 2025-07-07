@@ -2,6 +2,10 @@ import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
+import { createDataStore } from './storage/DataStoreFactory'
+
+// Instantiate the data store (SQLite or Postgres based on env)
+const dataStore = createDataStore()
 
 function createWindow(): void {
   // Create the browser window.
@@ -39,7 +43,7 @@ function createWindow(): void {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
 
@@ -52,6 +56,25 @@ app.whenReady().then(() => {
 
   // IPC test
   ipcMain.on('ping', () => console.log('pong'))
+  // Database IPC handlers
+  ipcMain.handle('db:getById', async (_event, table: string, id: number) => {
+    return dataStore.getById(table, id)
+  })
+  ipcMain.handle('db:getAll', async (_event, table: string) => {
+    return dataStore.getAll(table)
+  })
+  ipcMain.handle('db:create', async (_event, table: string, item: any) => {
+    return dataStore.create(table, item)
+  })
+  ipcMain.handle('db:update', async (_event, table: string, id: number, changes: any) => {
+    return dataStore.update(table, id, changes)
+  })
+  ipcMain.handle('db:delete', async (_event, table: string, id: number) => {
+    return dataStore.delete(table, id)
+  })
+
+  // Initialize the data store (run migrations, etc.)
+  await dataStore.init()
 
   createWindow()
 
@@ -65,10 +88,14 @@ app.whenReady().then(() => {
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
 // explicitly with Cmd + Q.
+// Ensure the data store is closed before quitting
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
   }
+})
+app.on('before-quit', async () => {
+  await dataStore.close()
 })
 
 // In this file you can include the rest of your app's specific main process
