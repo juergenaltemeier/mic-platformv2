@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { format } from "date-fns"
+import { format, parse } from "date-fns"
 import { Calendar as CalendarIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -24,59 +24,72 @@ interface DatePickerWithInputProps {
 export function DatePickerWithInput({ row, onDateChange }: DatePickerWithInputProps): React.ReactElement {
   const { date: timestamp } = row.original
   const [date, setDate] = React.useState<Date | undefined>(new Date(timestamp))
-  const [inputValue, setInputValue] = React.useState<string>(format(new Date(timestamp), "PPP"))
+  const [inputValue, setInputValue] = React.useState<string>(format(new Date(timestamp), "yyMMdd"))
+  const [popoverOpen, setPopoverOpen] = React.useState(false);
+
+  // Update input value when date changes
+  React.useEffect(() => {
+    if (date) {
+      setInputValue(format(date, "yyMMdd"));
+    }
+  }, [date]);
 
   const handleDateSelect = (newDate: Date | undefined): void => {
     if (newDate) {
       setDate(newDate)
-      setInputValue(format(newDate, "PPP"))
       onDateChange(row.original, newDate)
+      setPopoverOpen(false); // Close popover on selection
     }
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    setInputValue(e.target.value)
-    try {
-      const parsedDate = new Date(e.target.value)
-      if (!isNaN(parsedDate.getTime())) {
-        setDate(parsedDate)
-        onDateChange(row.original, parsedDate)
-      }
-    } catch (error) {
-      // Ignore invalid date strings
-      console.error(error);
+    const value = e.target.value;
+    setInputValue(value);
+    // Only parse if the format is complete
+    if (value.length === 6) {
+        try {
+            const parsedDate = parse(value, "yyMMdd", new Date());
+            if (!isNaN(parsedDate.getTime())) {
+                setDate(parsedDate);
+                onDateChange(row.original, parsedDate);
+            }
+        } catch (error) {
+            // Ignore invalid date strings
+        }
     }
   }
 
   return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button
-          variant={"outline"}
-          className={cn(
-            "w-[280px] justify-start text-left font-normal",
-            !date && "text-muted-foreground"
-          )}
-        >
-          <CalendarIcon className="mr-2 h-4 w-4" />
-          {date ? format(date, "PPP") : <span>Pick a date</span>}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-auto p-0">
-        <Calendar
-          mode="single"
-          selected={date}
-          onSelect={handleDateSelect}
-          initialFocus
-        />
-        <div className="p-2">
-          <Input
-            value={inputValue}
-            onChange={handleInputChange}
-            placeholder="e.g., next Tuesday"
+    <div className="flex items-center">
+      <Input
+        value={inputValue}
+        onChange={handleInputChange}
+        className="w-[80px] h-8 text-sm"
+        maxLength={6}
+      />
+      <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant={"outline"}
+            size="sm"
+            className={cn(
+              "h-8 w-8 p-0 ml-1",
+              !date && "text-muted-foreground"
+            )}
+          >
+            <CalendarIcon className="h-4 w-4" />
+            <span className="sr-only">Open calendar</span>
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0">
+          <Calendar
+            mode="single"
+            selected={date}
+            onSelect={handleDateSelect}
+            initialFocus
           />
-        </div>
-      </PopoverContent>
-    </Popover>
+        </PopoverContent>
+      </Popover>
+    </div>
   )
 }

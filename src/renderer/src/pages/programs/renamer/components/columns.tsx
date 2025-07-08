@@ -74,6 +74,7 @@ export const getColumns = ({ onDateChange, onSuffixChange }: GetColumnsProps): C
     header: "Date",
     cell: ({ row }) => (
         <DatePickerWithInput row={row} onDateChange={onDateChange} />
-    )
+    ),
+    size: 120,
   },
 ]
