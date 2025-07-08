@@ -8,7 +8,7 @@ interface EditableCellProps {
   onSuffixChange: (entry: FileEntry, newSuffix: string) => void;
 }
 
-export function EditableCell({ row, onSuffixChange }: EditableCellProps) {
+export function EditableCell({ row, onSuffixChange }: EditableCellProps): React.ReactElement {
   const { suffix } = row.original;
   const [value, setValue] = useState(suffix);
 
@@ -16,15 +16,16 @@ export function EditableCell({ row, onSuffixChange }: EditableCellProps) {
     setValue(suffix);
   }, [suffix]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     // Disallow characters that are invalid in filenames
     const sanitized = e.target.value.replace(/[<>:"/\\|?*]/g, '');
     setValue(sanitized);
   };
 
-  const handleBlur = () => {
+  const handleBlur = (): void => {
     onSuffixChange(row.original, value);
   };
+
 
   return (
     <Input

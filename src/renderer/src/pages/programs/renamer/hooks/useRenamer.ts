@@ -7,7 +7,49 @@ import { fileToDataUrl } from '@/lib/utils'
 /**
  * Custom hook for Renamer page state and logic
  */
-export function useRenamer() {
+export function useRenamer(): {
+  files: FileEntry[];
+  selected: FileEntry[];
+  setSelected: React.Dispatch<React.SetStateAction<FileEntry[]>>;
+  prefixNumber: string;
+  setPrefixNumber: React.Dispatch<React.SetStateAction<string>>;
+  previewWidth: number;
+  onGutterMouseDown: (e: React.MouseEvent<HTMLDivElement>) => void;
+  handleImport: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleImportFlat: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  tagOptions: { id: string; label: string; }[];
+  toggleTag: (tag: string) => void;
+  handleTagsCellChange: (entry: FileEntry, tags: string[]) => void;
+  handleSuffixChange: (entry: FileEntry, newSuffix: string) => void;
+  getPreviewNames: () => string[];
+  previewOpen: boolean;
+  setPreviewOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  settingsOpen: boolean;
+  setSettingsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  settings: {
+    defaultImportFolder: string;
+    allowedFileTypes: string[];
+    columnSizes: Record<string, number>;
+  };
+  setSettings: React.Dispatch<React.SetStateAction<{
+    defaultImportFolder: string;
+    allowedFileTypes: string[];
+    columnSizes: Record<string, number>;
+  }>>;
+  handleSetImportDirectory: () => Promise<void>;
+  handleCompress: () => void;
+  handleConvertHEIC: () => void;
+  handleUndo: () => void;
+  handleRemoveSelected: () => void;
+  handleClearSuffix: () => void;
+  handleClearAll: () => void;
+  handleRestoreSession: () => void;
+  handleDateChange: (entry: FileEntry, date: Date) => void;
+  handleTagsInputChange: (entry: FileEntry, tagsString: string) => void;
+  selectNext: () => void;
+  selectPrev: () => void;
+  handleColumnResize: (newSizes: Record<string, number>) => void;
+} {
   const [files, setFiles] = useState<FileEntry[]>([])
   const [selected, setSelected] = useState<FileEntry[]>([])
   const [prefixNumber, setPrefixNumber] = useState<string>('')
@@ -21,6 +63,7 @@ export function useRenamer() {
   interface RenamerSettings {
     defaultImportFolder: string
     allowedFileTypes: string[]
+    columnSizes: Record<string, number>
   }
   const defaultSettings: RenamerSettings = {
     defaultImportFolder: defaults.defaultImportDirectory,
@@ -28,6 +71,7 @@ export function useRenamer() {
     allowedFileTypes: defaults.acceptedExtensions.map((ext) =>
       ext.replace(/^\./, '')
     ),
+    columnSizes: {},
   }
   const [settings, setSettings] = useState<RenamerSettings>(defaultSettings)
   // Load settings from localStorage on mount
@@ -91,13 +135,13 @@ export function useRenamer() {
   }
 
   // Import all files recursively
-  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImport = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const fileList = e.target.files
     if (!fileList) return
     importFromEvent(fileList, true)
   }
   // Import only top-level files (flat)
-  const handleImportFlat = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImportFlat = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const fileList = e.target.files
     if (!fileList) return
     importFromEvent(fileList, false)
@@ -111,7 +155,7 @@ export function useRenamer() {
   }))
 
   // Toggle tag on selected files
-  const toggleTag = (tag: string) => {
+  const toggleTag = (tag: string): void => {
     if (selected.length === 0) return;
 
     const isSelectedInAll = selected.every(file => file.tags.includes(tag));
@@ -130,10 +174,16 @@ export function useRenamer() {
     setSelected(newFiles.filter(f => selected.some(sel => sel.oldName === f.oldName)));
   };
 
+  const handleTagsCellChange = (entry: FileEntry, tags: string[]): void => {
+    const newFiles = files.map((f) => (f === entry ? { ...f, tags } : f));
+    setFiles(newFiles);
+    setSelected(newFiles.filter(f => selected.some(sel => sel.oldName === f.oldName)));
+  };
+
   const handleDateChange = (
     entry: FileEntry,
     date: Date
-  ) => {
+  ): void => {
     const newFiles = files.map((f) => (f === entry ? { ...f, date: date.getTime() } : f))
     setFiles(newFiles)
     setSelected(newFiles.filter(f => selected.some(sel => sel.oldName === f.oldName)));
@@ -142,7 +192,7 @@ export function useRenamer() {
   const handleSuffixChange = (
     entry: FileEntry,
     newSuffix: string
-  ) => {
+  ): void => {
     const newFiles = files.map((f) => (f === entry ? { ...f, suffix: newSuffix } : f));
     setFiles(newFiles);
     setSelected(newFiles.filter(f => selected.some(sel => sel.oldName === f.oldName)));
@@ -152,7 +202,7 @@ export function useRenamer() {
   const handleTagsInputChange = (
     entry: FileEntry,
     tagsString: string
-  ) => {
+  ): void => {
     // Split tags by comma or semicolon separators
     const tagsArr = tagsString.split(/[;,]+/).map(t => t.trim()).filter(Boolean)
     const newFiles = files.map((f) => (f === entry ? { ...f, tags: tagsArr } : f))
@@ -160,26 +210,26 @@ export function useRenamer() {
     setSelected(newFiles.filter(f => selected.some(sel => sel.oldName === f.oldName)));
   }
   // Compress selected items (stub)
-  const handleCompress = () => {
+  const handleCompress = (): void => {
     console.log('Compress selected items', selected)
   }
   // Convert selected HEIC to JPEG (stub)
-  const handleConvertHEIC = () => {
+  const handleConvertHEIC = (): void => {
     console.log('Convert HEIC for selected items', selected)
   }
   // Undo rename (stub)
-  const handleUndo = () => {
+  const handleUndo = (): void => {
     console.log('Undo rename')
   }
   // Remove selected files
-  const handleRemoveSelected = () => {
+  const handleRemoveSelected = (): void => {
     if (selected.length > 0) {
       setFiles((prev) => prev.filter((f) => !selected.some(sel => sel === f)))
       setSelected([])
     }
   }
   // Clear suffix for selected files
-  const handleClearSuffix = () => {
+  const handleClearSuffix = (): void => {
     if (selected.length > 0) {
       const newFiles = files.map(f => {
         if (selected.some(sel => sel === f)) {
@@ -192,16 +242,16 @@ export function useRenamer() {
     }
   }
   // Clear all files
-  const handleClearAll = () => {
+  const handleClearAll = (): void => {
     setFiles([])
     setSelected([])
   }
   // Restore session (stub)
-  const handleRestoreSession = () => {
+  const handleRestoreSession = (): void => {
     console.log('Restore session (not implemented)')
   }
   // Set default import directory via native dialog
-  const handleSetImportDirectory = async () => {
+  const handleSetImportDirectory = async (): Promise<void> => {
     try {
       const selectedDir: string | null = await window.electron.ipcRenderer.invoke(
         'dialog:selectDirectory',
@@ -218,7 +268,7 @@ export function useRenamer() {
   // Generate preview names for rename
   const getPreviewNames = useCallback((): string[] => {
     const prefix = prefixNumber ? `C${prefixNumber}` : 'C'
-    const formatDate = (d: number) => {
+    const formatDate = (d: number): string => {
       const dt = new Date(d)
       return `${dt.getFullYear()}${String(dt.getMonth() + 1).padStart(2, '0')}${String(
         dt.getDate()
@@ -235,24 +285,24 @@ export function useRenamer() {
 
   // Resize logic for preview/table splitter
   const gutterDrag = useRef<{ startX: number; startWidth: number } | null>(null)
-  const onMouseMove = useCallback((e: MouseEvent) => {
+  const onMouseMove = useCallback((e: MouseEvent): void => {
     const gd = gutterDrag.current
     if (!gd) return
     const dx = e.clientX - gd.startX
     setPreviewWidth(Math.max(100, gd.startWidth + dx))
   }, [])
-  const onMouseUp = useCallback(() => {
+  const onMouseUp = useCallback((): void => {
     document.removeEventListener('mousemove', onMouseMove)
     document.removeEventListener('mouseup', onMouseUp)
     gutterDrag.current = null
   }, [onMouseMove])
-  const onGutterMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+  const onGutterMouseDown = (e: React.MouseEvent<HTMLDivElement>): void => {
     gutterDrag.current = { startX: e.clientX, startWidth: previewWidth }
     document.addEventListener('mousemove', onMouseMove)
-    document.addEventListener('mouseup', onMouseUp)
+    document.addEventListener('mouseup', onGutterMouseUp)
   }
 
-    const selectNext = () => {
+    const selectNext = (): void => {
     if (selected.length !== 1) return
     const currentIndex = files.findIndex((f) => f === selected[0])
     if (currentIndex < files.length - 1) {
@@ -260,13 +310,17 @@ export function useRenamer() {
     }
   }
 
-  const selectPrev = () => {
+  const selectPrev = (): void => {
     if (selected.length !== 1) return
     const currentIndex = files.findIndex((f) => f === selected[0])
     if (currentIndex > 0) {
       setSelected([files[currentIndex - 1]])
     }
   }
+
+  const handleColumnResize = (newSizes: Record<string, number>): void => {
+    setSettings(prev => ({ ...prev, columnSizes: newSizes }));
+  };
 
   return {
     files,
@@ -281,6 +335,7 @@ export function useRenamer() {
     // available tags list
     tagOptions,
     toggleTag,
+    handleTagsCellChange,
     handleSuffixChange,
     getPreviewNames,
     previewOpen,
@@ -303,5 +358,6 @@ export function useRenamer() {
     handleTagsInputChange,
     selectNext,
     selectPrev,
+    handleColumnResize,
   }
 }

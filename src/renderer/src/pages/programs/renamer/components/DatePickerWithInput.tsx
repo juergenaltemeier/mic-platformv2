@@ -21,12 +21,12 @@ interface DatePickerWithInputProps {
   onDateChange: (entry: FileEntry, date: Date) => void
 }
 
-export function DatePickerWithInput({ row, onDateChange }: DatePickerWithInputProps) {
+export function DatePickerWithInput({ row, onDateChange }: DatePickerWithInputProps): React.ReactElement {
   const { date: timestamp } = row.original
   const [date, setDate] = React.useState<Date | undefined>(new Date(timestamp))
   const [inputValue, setInputValue] = React.useState<string>(format(new Date(timestamp), "PPP"))
 
-  const handleDateSelect = (newDate: Date | undefined) => {
+  const handleDateSelect = (newDate: Date | undefined): void => {
     if (newDate) {
       setDate(newDate)
       setInputValue(format(newDate, "PPP"))
@@ -34,7 +34,7 @@ export function DatePickerWithInput({ row, onDateChange }: DatePickerWithInputPr
     }
   }
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     setInputValue(e.target.value)
     try {
       const parsedDate = new Date(e.target.value)
@@ -44,6 +44,7 @@ export function DatePickerWithInput({ row, onDateChange }: DatePickerWithInputPr
       }
     } catch (error) {
       // Ignore invalid date strings
+      console.error(error);
     }
   }
 

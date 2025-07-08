@@ -9,8 +9,8 @@ interface TagsPanelProps {
   onToggleTag: (tag: string) => void
 }
 
-export function TagsPanel({ tagOptions, selected, onToggleTag }: TagsPanelProps) {
-  const getTagVariant = (tagId: string) => {
+export function TagsPanel({ tagOptions, selected, onToggleTag }: TagsPanelProps): React.ReactElement {
+  const getTagVariant = (tagId: string): "outline" | "secondary" | "ghost" => {
     if (selected.length === 0) return 'outline'
     const isSelectedInAll = selected.every(file => file.tags.includes(tagId));
     if (isSelectedInAll) return 'secondary';

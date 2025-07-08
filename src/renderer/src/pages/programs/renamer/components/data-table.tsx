@@ -13,6 +13,7 @@ import {
   getSortedRowModel,
   useReactTable,
   Row,
+  ColumnSizingState,
 } from "@tanstack/react-table"
 
 import {
@@ -37,12 +38,16 @@ interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
   onRowClick: (row: Row<TData>) => void;
+  columnSizes: Record<string, number>
+  onColumnResize: (newSizes: Record<string, number>) => void;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
   onRowClick,
+  columnSizes,
+  onColumnResize,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -51,6 +56,7 @@ export function DataTable<TData, TValue>({
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = React.useState({})
+  const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>(columnSizes);
 
   const table = useReactTable({
     data,
@@ -63,17 +69,23 @@ export function DataTable<TData, TValue>({
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
+    onColumnSizingChange: setColumnSizing,
     columnResizeMode: 'onChange',
     state: {
       sorting,
       columnFilters,
       columnVisibility,
       rowSelection,
+      columnSizing,
     },
   })
 
+  React.useEffect(() => {
+    onColumnResize(columnSizing);
+  }, [columnSizing, onColumnResize]);
+
   return (
-    <div style={{ width: table.getCenterTotalSize() }}>
+    <div>
         <div className="flex items-center py-4">
         <Input
           placeholder="Filter files..."

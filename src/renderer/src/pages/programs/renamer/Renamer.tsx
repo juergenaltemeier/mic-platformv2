@@ -13,7 +13,7 @@ import { useRef } from "react"
 
 import { TooltipProvider } from "@/components/ui/tooltip"
 
-export const Renamer = () => {
+export const Renamer = (): React.ReactElement => {
   const {
     files,
     selected,
@@ -41,11 +41,13 @@ export const Renamer = () => {
     handleSuffixChange,
     toggleTag,
     tagOptions,
+    handleTagsCellChange,
+    handleColumnResize,
   } = useRenamer()
 
   const tableContainerRef = useRef<HTMLDivElement>(null);
 
-  const handleContainerClick = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleContainerClick = (e: React.MouseEvent<HTMLDivElement>): void => {
     if (tableContainerRef.current && !tableContainerRef.current.contains(e.target as Node)) {
       setSelected([]);
     }
@@ -80,7 +82,10 @@ export const Renamer = () => {
                 getPreviewNames={getPreviewNames}
                 onDateChange={handleDateChange}
                 onSuffixChange={handleSuffixChange}
+                onTagsChange={handleTagsCellChange}
                 selectedRows={selected}
+                columnSizes={settings.columnSizes}
+                onColumnResize={handleColumnResize}
               />
             </ResizablePanel>
             <ResizableHandle withHandle />

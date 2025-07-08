@@ -273,3 +273,29 @@ code {
     @apply bg-background text-foreground;
   }
 }
+
+.resizer {
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 100%;
+  width: 5px;
+  background: rgba(0, 0, 0, 0.5);
+  cursor: col-resize;
+  user-select: none;
+  touch-action: none;
+  opacity: 0;
+}
+
+.resizer.isResizing {
+  background: blue;
+  opacity: 1;
+}
+
+th:hover .resizer {
+  opacity: 1;
+}
+
+table {
+  width: 100%;
+}
