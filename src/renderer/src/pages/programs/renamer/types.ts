@@ -2,7 +2,7 @@ export type FileEntry = {
   file: File
   oldName: string
   tags: string[]
-  date: number
+  date: string
   suffix: string
   previewUrl: string
 }
