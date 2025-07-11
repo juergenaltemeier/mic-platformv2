@@ -10,7 +10,8 @@
 
  - Electron (via electron-vite)
  - Vite
- - React 18+ and React DOM
+ - React 19+ and React DOM
+ - react-data-grid (https://github.com/adazzle/react-data-grid/blob/main/README.md)
  - TypeScript with strict typing
  - Tailwind CSS for styling
  - ESLint & Prettier for linting and formatting
