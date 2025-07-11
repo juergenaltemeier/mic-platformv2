@@ -1,17 +1,9 @@
-import {
-  ResizableHandle,
-  ResizablePanel,
-  ResizablePanelGroup,
-} from "@/components/ui/resizable"
 import { Toolbar } from "./components/Toolbar"
 import { useRenamer } from "./hooks/useRenamer"
-import { FilesTable } from "./components/FilesTable"
-import { PreviewPanel } from "./components/PreviewPanel"
-import { TagsPanel } from "./components/TagsPanel"
 import { RenamePreviewSheet } from "./components/RenamePreviewSheet"
-import { useRef } from "react"
 
 import { TooltipProvider } from "@/components/ui/tooltip"
+import FileGrid from "./components/FileGrid"
 
 export const Renamer = (): React.ReactElement => {
   const {
@@ -35,27 +27,13 @@ export const Renamer = (): React.ReactElement => {
     handleCompress,
     handleConvertHEIC,
     handleUndo,
-    selectNext,
-    selectPrev,
-    handleDateChange,
-    handleSuffixChange,
     toggleTag,
     tagOptions,
-    handleTagsCellChange,
-    handleColumnResize,
   } = useRenamer()
-
-  const tableContainerRef = useRef<HTMLDivElement>(null);
-
-  const handleContainerClick = (e: React.MouseEvent<HTMLDivElement>): void => {
-    if (tableContainerRef.current && !tableContainerRef.current.contains(e.target as Node)) {
-      setSelected([]);
-    }
-  };
 
   return (
     <TooltipProvider>
-      <div className="flex flex-col h-full" onClick={handleContainerClick}>
+      <div className="flex flex-col h-full">
         <Toolbar
           prefixNumber={prefixNumber}
           setPrefixNumber={setPrefixNumber}
@@ -74,41 +52,7 @@ export const Renamer = (): React.ReactElement => {
           onRestoreSession={handleRestoreSession}
         />
         <div className="flex-1 overflow-hidden">
-          <ResizablePanelGroup direction="horizontal" ref={tableContainerRef}>
-            <ResizablePanel>
-              <FilesTable
-                files={files}
-                setSelected={setSelected}
-                getPreviewNames={getPreviewNames}
-                onDateChange={handleDateChange}
-                onSuffixChange={handleSuffixChange}
-                onTagsChange={handleTagsCellChange}
-                selectedRows={selected}
-                columnSizes={settings.columnSizes}
-                onColumnResize={handleColumnResize}
-              />
-            </ResizablePanel>
-            <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={30}>
-              <ResizablePanelGroup direction="vertical">
-                <ResizablePanel defaultSize={50}>
-                  <PreviewPanel
-                    selected={selected.length === 1 ? selected[0] : null}
-                    onNext={selectNext ?? (() => {})}
-                    onPrev={selectPrev ?? (() => {})}
-                  />
-                </ResizablePanel>
-                <ResizableHandle withHandle />
-                <ResizablePanel defaultSize={50}>
-                  <TagsPanel
-                    selected={selected}
-                    onToggleTag={toggleTag}
-                    tagOptions={tagOptions}
-                  />
-                </ResizablePanel>
-              </ResizablePanelGroup>
-            </ResizablePanel>
-          </ResizablePanelGroup>
+          <FileGrid files={files} selected={selected} setSelected={setSelected} />
         </div>
         <RenamePreviewSheet
           isOpen={previewOpen}

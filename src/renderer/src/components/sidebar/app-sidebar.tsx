@@ -26,6 +26,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import { ModeToggle } from "@renderer/components/sidebar/mode-toggle"
+import { is } from "date-fns/locale"
 
 const data = {
   user: {
@@ -43,21 +44,14 @@ const data = {
         {
           title: "Test1",
           url: "#",
-        },
-        {
-          title: "Test2",
-          url: "#",
-        },
-        {
-          title: "Test3",
-          url: "#",
-        },
+        }
       ],
     },
     {
       title: "Programs",
       url: "#",
       icon: Bot,
+      isActive: true,
       items: [
         {
           title: "Renamer",
@@ -154,31 +148,11 @@ const data = {
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>): React.ReactElement {
   return (
     <Sidebar variant="inset" {...props}>
-      <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
-              <a href="#">
-                <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                  <Compass className="size-4" />
-                </div>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">Micavac AG</span>
-                  <span className="truncate text-xs">Vacuum</span>
-                </div>
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
         <ModeToggle/>
-        <NavUser user={data.user} />
       </SidebarFooter>
     </Sidebar>
   )

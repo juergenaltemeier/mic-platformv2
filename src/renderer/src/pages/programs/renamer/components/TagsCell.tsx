@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { FileEntry } from '../types';
-import { Row } from '@tanstack/react-table';
+import type { Row } from '@tanstack/react-table';
 
 interface TagsCellProps {
   row: Row<FileEntry>;

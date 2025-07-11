@@ -13,8 +13,6 @@ export function useRenamer(): {
   setSelected: React.Dispatch<React.SetStateAction<FileEntry[]>>;
   prefixNumber: string;
   setPrefixNumber: React.Dispatch<React.SetStateAction<string>>;
-  previewWidth: number;
-  onGutterMouseDown: (e: React.MouseEvent<HTMLDivElement>) => void;
   handleImport: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleImportFlat: (e: React.ChangeEvent<HTMLInputElement>) => void;
   tagOptions: { id: string; label: string; }[];
@@ -29,12 +27,10 @@ export function useRenamer(): {
   settings: {
     defaultImportFolder: string;
     allowedFileTypes: string[];
-    columnSizes: Record<string, number>;
   };
   setSettings: React.Dispatch<React.SetStateAction<{
     defaultImportFolder: string;
     allowedFileTypes: string[];
-    columnSizes: Record<string, number>;
   }>>;
   handleSetImportDirectory: () => Promise<void>;
   handleCompress: () => void;
@@ -48,14 +44,10 @@ export function useRenamer(): {
   handleTagsInputChange: (entry: FileEntry, tagsString: string) => void;
   selectNext: () => void;
   selectPrev: () => void;
-  handleColumnResize: (newSizes: Record<string, number>) => void;
 } {
   const [files, setFiles] = useState<FileEntry[]>([])
   const [selected, setSelected] = useState<FileEntry[]>([])
   const [prefixNumber, setPrefixNumber] = useState<string>('')
-  const [previewWidth, setPreviewWidth] = useState<number>(() =>
-    typeof window !== 'undefined' ? window.innerWidth * 0.4 : 400
-  )
   const [previewOpen, setPreviewOpen] = useState<boolean>(false)
   // Settings dialog open state
   const [settingsOpen, setSettingsOpen] = useState<boolean>(false)
@@ -63,7 +55,6 @@ export function useRenamer(): {
   interface RenamerSettings {
     defaultImportFolder: string
     allowedFileTypes: string[]
-    columnSizes: Record<string, number>
   }
   const defaultSettings: RenamerSettings = {
     defaultImportFolder: defaults.defaultImportDirectory,
@@ -71,7 +62,6 @@ export function useRenamer(): {
     allowedFileTypes: defaults.acceptedExtensions.map((ext) =>
       ext.replace(/^\./, '')
     ),
-    columnSizes: {},
   }
   const [settings, setSettings] = useState<RenamerSettings>(defaultSettings)
   // Load settings from localStorage on mount
@@ -197,130 +187,50 @@ export function useRenamer(): {
     setFiles(newFiles);
     setSelected(newFiles.filter(f => selected.some(sel => sel.oldName === f.oldName)));
   };
-  
-  // Update tags on a file entry from comma/space separated string
-  const handleTagsInputChange = (
-    entry: FileEntry,
-    tagsString: string
-  ): void => {
-    // Split tags by comma or semicolon separators
-    const tagsArr = tagsString.split(/[;,]+/).map(t => t.trim()).filter(Boolean)
-    const newFiles = files.map((f) => (f === entry ? { ...f, tags: tagsArr } : f))
-    setFiles(newFiles)
-    setSelected(newFiles.filter(f => selected.some(sel => sel.oldName === f.oldName)));
-  }
-  // Compress selected items (stub)
-  const handleCompress = (): void => {
-    console.log('Compress selected items', selected)
-  }
-  // Convert selected HEIC to JPEG (stub)
-  const handleConvertHEIC = (): void => {
-    console.log('Convert HEIC for selected items', selected)
-  }
-  // Undo rename (stub)
-  const handleUndo = (): void => {
-    console.log('Undo rename')
-  }
-  // Remove selected files
-  const handleRemoveSelected = (): void => {
-    if (selected.length > 0) {
-      setFiles((prev) => prev.filter((f) => !selected.some(sel => sel === f)))
-      setSelected([])
-    }
-  }
-  // Clear suffix for selected files
-  const handleClearSuffix = (): void => {
-    if (selected.length > 0) {
-      const newFiles = files.map(f => {
-        if (selected.some(sel => sel === f)) {
-          return { ...f, suffix: '' };
-        }
-        return f;
-      });
-      setFiles(newFiles);
-      setSelected(newFiles.filter(f => selected.some(sel => sel.oldName === f.oldName)));
-    }
-  }
-  // Clear all files
-  const handleClearAll = (): void => {
-    setFiles([])
-    setSelected([])
-  }
-  // Restore session (stub)
-  const handleRestoreSession = (): void => {
-    console.log('Restore session (not implemented)')
-  }
-  // Set default import directory via native dialog
-  const handleSetImportDirectory = async (): Promise<void> => {
-    try {
-      const selectedDir: string | null = await window.electron.ipcRenderer.invoke(
-        'dialog:selectDirectory',
-        settings.defaultImportFolder
-      )
-      if (selectedDir) {
-        setSettings({ ...settings, defaultImportFolder: selectedDir })
-      }
-    } catch {
-      // ignore
-    }
-  }
 
-  // Generate preview names for rename
+  // Generate preview names based on prefix, base name, suffix, and extension
   const getPreviewNames = useCallback((): string[] => {
-    const prefix = prefixNumber ? `C${prefixNumber}` : 'C'
-    const formatDate = (d: number): string => {
-      const dt = new Date(d)
-      return `${dt.getFullYear()}${String(dt.getMonth() + 1).padStart(2, '0')}${String(
-        dt.getDate()
-      ).padStart(2, '0')}`
-    }
-    return files.map((f, i) => {
-      const tagsPart = f.tags.join('-') || 'NOTAGS'
-      const datePart = formatDate(f.date)
-      const inc = files.length > 1 ? `_${i + 1}` : ''
-      const suffixPart = f.suffix ? `_${f.suffix}` : ''
-      return `${prefix}_${tagsPart}_${datePart}${inc}${suffixPart}`
+    return files.map((file) => {
+      const idx = file.oldName.lastIndexOf('.')
+      const base = idx >= 0 ? file.oldName.slice(0, idx) : file.oldName
+      const ext = idx >= 0 ? file.oldName.slice(idx) : ''
+      return `${prefixNumber}${base}${file.suffix}${ext}`
     })
   }, [files, prefixNumber])
 
-  // Resize logic for preview/table splitter
-  const gutterDrag = useRef<{ startX: number; startWidth: number } | null>(null)
-  const onMouseMove = useCallback((e: MouseEvent): void => {
-    const gd = gutterDrag.current
-    if (!gd) return
-    const dx = e.clientX - gd.startX
-    setPreviewWidth(Math.max(100, gd.startWidth + dx))
+  const handleSetImportDirectory = useCallback(async (): Promise<void> => {
+    // placeholder for setting import directory
   }, [])
-  const onMouseUp = useCallback((): void => {
-    document.removeEventListener('mousemove', onMouseMove)
-    document.removeEventListener('mouseup', onMouseUp)
-    gutterDrag.current = null
-  }, [onMouseMove])
-  const onGutterMouseDown = (e: React.MouseEvent<HTMLDivElement>): void => {
-    gutterDrag.current = { startX: e.clientX, startWidth: previewWidth }
-    document.addEventListener('mousemove', onMouseMove)
-    document.addEventListener('mouseup', onGutterMouseUp)
-  }
 
-    const selectNext = (): void => {
-    if (selected.length !== 1) return
-    const currentIndex = files.findIndex((f) => f === selected[0])
-    if (currentIndex < files.length - 1) {
-      setSelected([files[currentIndex + 1]])
-    }
-  }
+  const handleCompress = useCallback((): void => {
+    // placeholder for compress action
+  }, [])
 
-  const selectPrev = (): void => {
-    if (selected.length !== 1) return
-    const currentIndex = files.findIndex((f) => f === selected[0])
-    if (currentIndex > 0) {
-      setSelected([files[currentIndex - 1]])
-    }
-  }
+  const handleConvertHEIC = useCallback((): void => {
+    // placeholder for HEIC conversion action
+  }, [])
 
-  const handleColumnResize = (newSizes: Record<string, number>): void => {
-    setSettings(prev => ({ ...prev, columnSizes: newSizes }));
-  };
+  const handleUndo = useCallback((): void => {
+    // placeholder for undo rename action
+  }, [])
+
+  const handleRemoveSelected = useCallback((): void => {
+    setFiles((prev) => prev.filter((f) => !selected.includes(f)))
+    setSelected([])
+  }, [selected])
+
+  const handleClearSuffix = useCallback((): void => {
+    setFiles((prev) => prev.map((f) => ({ ...f, suffix: '' })))
+  }, [])
+
+  const handleClearAll = useCallback((): void => {
+    setFiles([])
+    setSelected([])
+  }, [])
+
+  const handleRestoreSession = useCallback((): void => {
+    // placeholder for restore session action
+  }, [])
 
   return {
     files,
@@ -328,15 +238,11 @@ export function useRenamer(): {
     setSelected,
     prefixNumber,
     setPrefixNumber,
-    previewWidth,
-    onGutterMouseDown,
     handleImport,
     handleImportFlat,
     // available tags list
     tagOptions,
     toggleTag,
-    handleTagsCellChange,
-    handleSuffixChange,
     getPreviewNames,
     previewOpen,
     setPreviewOpen,
@@ -354,10 +260,5 @@ export function useRenamer(): {
     handleClearSuffix,
     handleClearAll,
     handleRestoreSession,
-    handleDateChange,
-    handleTagsInputChange,
-    selectNext,
-    selectPrev,
-    handleColumnResize,
   }
 }

@@ -24,9 +24,13 @@ export default defineConfig({
     resolve: {
       alias: {
         '@renderer': resolve('src/renderer/src'),
-        '@': resolve('src/renderer/src/'),
+        '@': resolve('src/renderer/src/')
       }
     },
-    plugins: [react(), tailwindcss()]
+    plugins: [react(), tailwindcss()],
+    server: {
+      // bind to IPv4 loopback to avoid EPERM on IPv6 ::1
+      host: '127.0.0.1'
+    }
   }
 })

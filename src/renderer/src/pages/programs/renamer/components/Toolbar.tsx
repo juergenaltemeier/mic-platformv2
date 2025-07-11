@@ -124,7 +124,7 @@ export function Toolbar({
       {/* Hidden inputs for import actions */}
       <input type="file" multiple hidden ref={fileInputRef} accept={accept} onChange={onImport} />
       <input
-        {...({ webkitdirectory: true } as any)}
+        webkitdirectory="true"
         type="file"
         multiple
         hidden
@@ -133,7 +133,7 @@ export function Toolbar({
         onChange={onImport}
       />
       <input
-        {...({ webkitdirectory: true } as any)}
+        webkitdirectory="true"
         type="file"
         multiple
         hidden
