@@ -3,6 +3,7 @@ import { DataGrid } from '../../../components/ui/data-grid'
 import type { Column, FormatterProps } from '../../../components/ui/data-grid'
 import { PreviewPanel } from './components/PreviewPanel'
 import { TagsPanel } from './components/TagsPanel'
+import { textEditor } from 'react-data-grid'
 import tagsConfig from './config/tags.json'
 import { TagOption, FileEntry } from './types'
 import { useTheme } from '../../../components/theme-provider'
@@ -10,6 +11,7 @@ import { useTheme } from '../../../components/theme-provider'
 export function Renamer(): React.ReactElement {
   const [files, setFiles] = useState<FileEntry[]>([])
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set())
+  const [cNumber, setCNumber] = useState<string>('')
   const { theme } = useTheme()
 
   const tagOptions: TagOption[] = useMemo(
@@ -24,6 +26,8 @@ export function Renamer(): React.ReactElement {
       file,
       oldName: file.name,
       tags: [],
+      date: '',
+      suffix: '',
       previewUrl: URL.createObjectURL(file),
     }))
     setFiles(arr)
@@ -44,9 +48,13 @@ export function Renamer(): React.ReactElement {
   const handleRename = () => {
     files.forEach((f, idx) => {
       if (!selectedRows.has(idx)) return
-      const prefix = f.tags.join('_')
-      const newName = prefix ? `${prefix}_${f.oldName}` : f.oldName
+      const cNumberPrefix = cNumber ? `C${cNumber}_` : ''
+      const tagsPart = f.tags.length > 0 ? `${f.tags.join('_')}_` : ''
+      const datePart = f.date ? `${f.date}_` : ''
+      const suffixPart = f.suffix ? `${f.suffix}_` : ''
+      const newName = `${cNumberPrefix}${tagsPart}${datePart}${suffixPart}${f.oldName}`
       console.log(`Rename: ${f.oldName} → ${newName}`)
+      // TODO: Use Electron API to actually rename on disk
     })
   }
 
@@ -98,7 +106,41 @@ export function Renamer(): React.ReactElement {
         key: 'tags',
         name: 'Tags',
         resizable: true,
+        editable: true,
+        renderEditCell: ({ row, onRowChange, column, onClose }) => (
+          <input
+            type="text"
+            value={row.tags.join(', ')}
+            onChange={(e) => onRowChange({ ...row, tags: e.target.value.split(', ').map(tag => tag.trim()) })}
+            onBlur={() => onClose(true)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') onClose(true)
+              if (e.key === 'Escape') onClose(false)
+            }}
+            autoFocus
+          />
+        ),
         formatter: ({ row }) => row.tags.join(', '),
+      },
+      {
+        key: 'date',
+        name: 'Date',
+        resizable: true,
+        formatter: ({ row }) => row.date,
+      },
+      {
+        key: 'suffix',
+        name: 'Suffix',
+        resizable: true,
+        editable: true,
+        renderEditCell: (props) => (
+          <textEditor
+            {...props}
+            value={props.row.suffix}
+            onChange={(value) => props.onRowChange({ ...props.row, suffix: value })}
+          />
+        ),
+        formatter: ({ row }) => row.suffix,
       },
       {
         key: 'newName',
@@ -118,9 +160,24 @@ export function Renamer(): React.ReactElement {
       {/* Toolbar */}
       <div className="p-2 border-b flex items-center gap-4">
         <input type="file" multiple onChange={handleFileChange} />
+        <label htmlFor="cNumberInput">C Number:</label>
+        <input
+          id="cNumberInput"
+          type="text"
+          value={cNumber}
+          onChange={(e) => {
+            const value = e.target.value
+            if (/^\d{0,6}$/.test(value)) {
+              setCNumber(value)
+            }
+          }}
+          maxLength={6}
+          placeholder="e.g., 230105"
+          className="border p-1 rounded"
+        />
         <button
           onClick={handleRename}
-          disabled={selectedFiles.length === 0}
+          disabled={selectedFiles.length === 0 || cNumber.length !== 6}
           className="px-3 py-1 bg-blue-600 text-white rounded disabled:opacity-50"
         >
           Rename Selected
@@ -145,8 +202,7 @@ export function Renamer(): React.ReactElement {
             onRowsChange={setFiles}
             selectedRows={selectedRows}
             onSelectedRowsChange={setSelectedRows}
-            className={theme === 'system' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'rdg-dark' : 'rdg-light') : (theme === 'dark' ? 'rdg-dark' : 'rdg-light')}
-          />
+            />
         </div>
       </div>
     </div>
